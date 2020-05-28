@@ -1,0 +1,19 @@
+{
+  "name": "allthatstuff_v3",
+  "version": "1.0.0",
+  "description": "AllThatStuff with a game lobby",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NinaHahne/AllThatStuff_v3.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NinaHahne/AllThatStuff_v3/issues"
+  },
+  "homepage": "https://github.com/NinaHahne/AllThatStuff_v3#readme"
+}
