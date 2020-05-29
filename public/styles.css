@@ -50,9 +50,21 @@ body {
   background-attachment: fixed;
 }
 
+.hidden {
+  visibility: hidden;
+}
+
 /* §§ ***************************
               BUTTONS
    ****************************** */
+
+.buttonBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+}
 
 button {
   position: relative;
@@ -93,19 +105,38 @@ button:focus {
   outline: none;
 }
 
+#done-btn {
+  position: absolute;
+  border-radius: 0.4vw 1vw 0.4vw 1vw;
+  left: 0vw;
+  bottom: 0vw;
+  margin: 0.4vw 0.4vw;
+  z-index: 1500;
+}
+
+#next-btn {
+  margin: 0.4vw 0.4vw;
+  animation: pulseMessage 3s infinite linear;
+}
+
+#help-btn {
+  position: absolute;
+  border-radius: 1vw 0.4vw 1vw 0.4vw;
+  right: 0vw;
+  bottom: 0vw;
+  margin: 0.4vw 0.4vw;
+}
+
 /* §§ ***************************
           AllThatStuff LOGO
    ****************************** */
 
 .stuff-logo {
-  /* padding: 10% 8%; */
   padding: 1.2vw;
-  /* font-family: "Life Savers", cursive; */
   text-align: center;
 }
 
 .stuff-logo h1 {
-  /* font-size: 13.2vh; */
   font-size: 7vw;
   font-weight: 800;
   margin-top: 0;
@@ -113,7 +144,6 @@ button:focus {
 }
 
 .stuff-logo h2 {
-  /* font-size: 8.3vh; */
   font-size: 4.4vw;
   font-weight: 700;
   margin-top: 0;
@@ -162,11 +192,1544 @@ button:focus {
       (join-game-template)
   ****************************** */
 
+#inputGameId {
+  text-transform: uppercase;
+}
+
+/* §§ ***************************
+          HOST SCREEN
+      (host-game-template)
+****************************** */
+
 /* §§ ***************************
           PLAYER GAME SCREEN
    ****************************** */
 
 /* §§ ***************************
-             HOST SCREEN
-        (host-game-template)
-    ****************************** */
+    GAME SCREEN * GENERAL LAYOUT
+  ****************************** */
+#start-menu {
+  /* position: absolute;
+ top: 0;
+ left: 0; */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  flex-shrink: 0;
+  padding-bottom: 16vw;
+  z-index: 100;
+}
+
+#select-players {
+  display: flex;
+  width: 100%;
+  height: 12vw;
+  justify-content: space-between;
+  padding: 2vw;
+}
+
+#start-menu-middle {
+  display: flex;
+  width: 100%;
+  flex-grow: 1;
+  justify-content: space-between;
+  padding: 1vw 2vw;
+}
+
+#logo-button-box {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 30%;
+}
+
+#start-left,
+#start-right {
+  display: flex;
+  align-items: center;
+  /* justify-content: center; */
+  width: 30%;
+}
+
+#main-game {
+  position: absolute;
+  display: flex;
+  height: 100%;
+  min-height: 48vw;
+  width: 100%;
+  flex-shrink: 0;
+  top: 0;
+  left: 0;
+  /* align-items: flex-end; */
+  /* to fit in the queue of waiting objects: */
+  padding-bottom: 5vw;
+}
+
+#main-left-center {
+  position: relative;
+  display: flex;
+  width: 66vw;
+  flex-direction: column;
+  flex-grow: 1;
+  flex-shrink: 0;
+  /* justify-content: flex-end; */
+  justify-content: center;
+}
+
+#main-right {
+  display: flex;
+  /* flex-grow: 1; */
+  flex-shrink: 0;
+  width: 34vw;
+  padding: 0.5vw 1vw 0.5vw 0.5vw;
+  /* align-items: flex-end; */
+  align-items: center;
+  /* justify-content: space-between; */
+}
+
+#joined-players {
+  display: flex;
+  width: 100%;
+  height: 9vw;
+  justify-content: space-around;
+  /* align-items: center; */
+  padding-top: 1.1vw;
+}
+
+#card-points-construction {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.5vw 0vw 0.5vw 1vw;
+  align-items: flex-end;
+  position: relative;
+}
+
+#card-points {
+  display: flex;
+  flex-direction: column;
+  height: 33vw;
+  flex-grow: 1;
+  justify-content: space-between;
+  padding-right: 1vw;
+}
+
+#construction-area {
+  position: relative;
+  display: flex;
+  height: 33vw;
+  width: 35vw;
+  border-width: 0.15vw;
+  border-style: dashed;
+  border-radius: 1.3vw;
+  justify-content: center;
+  align-items: flex-end;
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
+#objects {
+  position: relative;
+  display: flex;
+  /* flex-direction: row; */
+  flex-direction: row-reverse;
+  height: 42vw;
+  width: 100%;
+  flex-shrink: 0;
+  /* flex-wrap: wrap; */
+  flex-wrap: wrap-reverse;
+  justify-content: space-around;
+  align-content: space-around;
+  align-items: flex-start;
+  padding: 0.15vw 0.4vw 0.4vw 0.15vw;
+  border: 0.15vw lightgrey dashed;
+  border-radius: 1.3vw;
+}
+#queue {
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  height: 5vw;
+  width: 100%;
+  bottom: 0;
+  justify-content: flex-end;
+  align-items: center;
+  border-top: 0.15vw black dashed;
+  padding: 0.2% 1%;
+}
+
+#queue-overlay {
+  position: absolute;
+  height: 5vw;
+  width: 100%;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+}
+
+#game-end {
+  display: flex;
+  position: absolute;
+  height: 100%;
+  min-height: 42vw;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  justify-content: center;
+  align-items: center;
+}
+
+#play-again-box {
+  width: 34vw;
+  padding-right: 8vw;
+}
+
+#sound-on,
+#muted {
+  position: absolute;
+  height: 4vw;
+  bottom: 0.5vw;
+  left: 1vw;
+  z-index: 2000;
+}
+
+/* §§ ----------OBJECT TICKER------------------ */
+#ticker {
+  /* position: fixed; */
+  position: absolute;
+  bottom: 0%;
+  width: 100%;
+  overflow-x: hidden;
+  height: 16vw;
+  flex-shrink: 0;
+}
+
+#ticker-objects {
+  /* position: fixed; */
+  position: absolute;
+  display: flex;
+  align-items: center;
+  bottom: 0px;
+  left: 0;
+  white-space: nowrap;
+  font-size: 0; /* to remove white space between the ticker elements, that causes ticker to jump in the first round*/
+  height: 16vw;
+}
+
+#ticker-objects .img-box img:hover {
+  cursor: unset;
+}
+
+/* §§ --------------COLORS------------- */
+.grey {
+  background-color: rgba(128, 128, 128, 0.4);
+  border-color: rgb(128, 128, 128) !important;
+}
+
+.purple {
+  background-color: rgba(75, 0, 130, 0.4);
+  border-color: rgb(75, 0, 130) !important;
+}
+
+.blue {
+  background-color: rgba(0, 51, 119, 0.4);
+  border-color: rgb(0, 51, 119) !important;
+}
+
+.green {
+  background-color: rgba(46, 139, 87, 0.4);
+  border-color: rgb(46, 139, 87) !important;
+}
+
+.yellow {
+  background-color: rgba(255, 215, 0, 0.4);
+  border-color: rgb(255, 215, 0) !important;
+}
+
+.orange {
+  background-color: rgba(255, 140, 0, 0.4);
+  border-color: rgb(255, 140, 0) !important;
+}
+
+.red {
+  background-color: rgba(185, 0, 20, 0.4);
+  border-color: rgb(185, 0, 20) !important;
+}
+
+.pink {
+  background-color: rgba(213, 0, 102, 0.4);
+  border-color: rgb(213, 0, 102) !important;
+}
+
+/* §§ -------------PLAYER PIECES-------------- */
+
+.player {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 6.5vw;
+  width: 6.5vw;
+  justify-content: center;
+  align-items: center;
+  border: 0.15vw dashed transparent;
+  border-radius: 50%;
+  font-weight: bold;
+  flex-shrink: 0;
+  color: white;
+  margin: 0.3vw;
+
+  -webkit-transition: transform 0.4s ease-out, border-style 0.4s ease-out,
+    border-width 0.4s ease-out, color 0.4s ease-out;
+  -moz-transition: transform 0.4s ease-out, border-style 0.4s ease-out,
+    border-width 0.4s ease-out, color 0.4s ease-out;
+  -o-transition: transform 0.4s ease-out, border-style 0.4s ease-out,
+    border-width 0.4s ease-out, color 0.4s ease-out;
+  transition: transform 0.4s ease-out, border-style 0.4s ease-out,
+    border-width 0.4s ease-out, color 0.4s ease-out;
+}
+
+.player.selectedPlayerPiece {
+  border-style: solid;
+  color: black;
+}
+
+.player:not(.selectedPlayerPiece):hover {
+  cursor: pointer;
+  transform: scale(1.2);
+  border-style: solid;
+}
+
+.player-name {
+  /* click through the "?" to the underlying player piece: */
+  pointer-events: none;
+}
+
+/* font sizes depending on length of player name: */
+.player.name4 .player-name {
+  font-size: 2vw;
+}
+
+.player.name6 .player-name {
+  font-size: 1.7vw;
+}
+
+.player.name8 .player-name {
+  font-size: 1.4vw;
+}
+
+.player.name10 .player-name {
+  font-size: 1.15vw;
+}
+
+.player.name12 .player-name {
+  font-size: 1vw;
+}
+
+#select-players .player.myPiece {
+  transform: scale(1.2);
+  border-style: double;
+  border-width: 0.45vw;
+}
+
+#joined-players .player-name,
+#players-end .player-name {
+  position: relative;
+  bottom: 9%;
+}
+
+#joined-players .player-points,
+#players-end .player-points {
+  position: absolute;
+  bottom: 6%;
+  transition: transform 0.3s ease-out;
+}
+
+#joined-players .player.myTurn {
+  border-style: solid;
+  border-width: 0.15vw;
+  /* more square; not round: */
+  border-radius: 1.3vw;
+}
+
+#joined-players .player.myPiece {
+  transform: unset;
+  height: 7vw;
+  width: 7vw;
+  border-style: double;
+  border-width: 0.45vw;
+}
+
+#players-end {
+  position: relative;
+  display: flex;
+  width: 66vw;
+  height: 48vw;
+  justify-content: space-around;
+  padding-top: 1.1vw;
+}
+
+#players-end .player {
+  border-style: solid;
+  color: black;
+
+  -webkit-transition: transform 1s ease-out;
+  -moz-transition: transform 1s ease-out;
+  -o-transition: transform 1s ease-out;
+  transition: transform 1s ease-out;
+}
+
+#players-end .player:hover {
+  cursor: unset;
+  transform: unset;
+}
+
+#players-end .winner {
+  animation: pulse 2s infinite linear;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+}
+
+/* §§ --------CROWN / game master indicator------- */
+.crown {
+  position: absolute;
+  height: 1.8vw;
+  top: -1.3vw;
+  right: 0.25vw;
+  transform: rotate(25deg);
+}
+
+#select-players .player.myPiece .crown {
+  top: -1.5vw;
+  right: -0.2vw;
+}
+
+#joined-players .player.myPiece .crown {
+  top: -1.5vw;
+  right: -0.08vw;
+}
+
+#joined-players .player.myTurn .crown {
+  top: -1.3vw;
+  right: -0.9vw;
+}
+
+#joined-players .player.myTurn.myPiece .crown {
+  top: -1.6vw;
+  right: -1.2vw;
+}
+
+#play .crown,
+#next-btn .crown {
+  top: -1.3vw;
+  right: -0.95vw;
+}
+
+/* §§ -------select LANGUAGE of word cards---------- */
+#chosen-language {
+  position: relative;
+  height: 6vw;
+  width: 6vw;
+  margin: 0.3vw;
+
+  -webkit-transition: transform 0.4s ease-out;
+  -moz-transition: transform 0.4s ease-out;
+  -o-transition: transform 0.4s ease-out;
+  transition: transform 0.4s ease-out;
+}
+
+#chosen-language.game-master:hover {
+  cursor: pointer;
+  transform: scale(1.1);
+}
+
+#chosen-language img:not(.crown) {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  border: 0.15vw dashed black;
+  border-radius: 50%;
+}
+
+/* §§ ---------- MESSAGES & TURN INDICATOR----------------*/
+
+#logo-button-box .waiting-msg {
+  text-align: center;
+  position: relative;
+  bottom: 15%;
+  animation: pulseMessage 2s infinite linear;
+}
+
+#construction-area .message {
+  position: absolute;
+  align-self: flex-start;
+  margin-top: 0.4vw;
+  font-size: 2vw;
+  animation: floatMessage 4s infinite linear;
+}
+
+#construction-area .message.bold {
+  font-weight: bold;
+  animation: pulseMessage 3s infinite linear;
+}
+
+#construction-area .message.done {
+  animation: none;
+}
+
+@keyframes floatMessage {
+  0%,
+  100% {
+    transform: translateX(0vw);
+  }
+  25% {
+    transform: translateX(-1.5vw);
+  }
+  75% {
+    transform: translateX(1.5vw);
+  }
+}
+
+@keyframes pulseMessage {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+#construction-area #rounds {
+  position: absolute;
+  top: 0.5vw;
+  right: 0.5vw;
+}
+
+/* §§ INSTRUCTIONS --------------------- */
+#instructions {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 0.3vw;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 1vw;
+  padding: 0.5vw;
+  z-index: 1000;
+}
+
+#instructions h3 {
+  margin: 0 0 0.3vw 0;
+  font-size: 1.7vw;
+  font-weight: 800;
+}
+
+#instructions ul {
+  margin: 0.3vw 0;
+  padding-inline-start: 1.5vw;
+}
+
+#instructions li {
+  margin-bottom: 0.2vw;
+  font-size: 1.2vw;
+}
+
+#instructions p {
+  margin: 0;
+  font-weight: bold;
+  font-size: 1.4vw;
+}
+
+#instructions span {
+  font-weight: bold;
+  color: white;
+  background-color: black;
+  border-radius: 0.4vw;
+  padding: 0.07vw 0.3vw;
+}
+
+/* §§ ----------- CARDS --------------------- */
+#card-deck {
+  position: relative;
+}
+
+.wordcard {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  font-weight: 700;
+  touch-action: manipulation;
+}
+
+.cardtitle,
+.table-row {
+  /* to allow the guesses-box to position itself to the right:  */
+  position: relative;
+  display: flex;
+  width: 100%;
+  margin-bottom: 0.2vw;
+}
+
+.cardtitle {
+  height: 4.5vw;
+  font-size: 1.8vw;
+  margin-top: 0;
+  font-weight: 800;
+  align-items: center;
+}
+
+.table-row:hover {
+  cursor: pointer;
+}
+
+.highlight {
+  position: relative;
+  display: flex;
+  /* leave space for "guess markers" next to card item/word: */
+  max-width: 90%;
+  padding: 0.4vw 0.4vw;
+  border-radius: 1vw;
+  border-width: 0.15vw;
+  border-style: solid;
+  border-color: transparent;
+
+  -webkit-transition: border-color 0.2s ease-out;
+  -moz-transition: border-color 0.2s ease-out;
+  -o-transition: border-color 0.2s ease-out;
+  transition: border-color 0.2s ease-out;
+}
+
+.table-row:hover .highlight {
+  border-color: lightgrey;
+}
+
+.bullet,
+.item {
+  vertical-align: top;
+  font-size: 1.6vw;
+}
+
+.bullet {
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-align: end;
+  width: 1.7vw;
+}
+
+.item {
+  padding-left: 0.4vw;
+  text-align: start;
+  font-weight: 700;
+}
+
+/* smaller text on cards */
+small {
+  font-size: 1.2vw;
+}
+
+.guesses {
+  position: absolute;
+  display: flex;
+  right: 0vw;
+  align-items: center;
+  justify-content: flex-end;
+  padding-top: 0.7vw;
+}
+
+.guess {
+  height: 1.6vw;
+  width: 1.6vw;
+  border-radius: 50%;
+  border-style: solid;
+  border-width: 0.15vw;
+  margin-left: 0.2vw;
+}
+
+/* §§ ----------POINTS-------------- */
+#points-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+#points-container h3 {
+  margin-top: 0;
+  margin-bottom: 0.4vw;
+  font-weight: 800;
+  font-size: 1.6vw;
+}
+
+#points-if-correct {
+  display: flex;
+  font-size: 1.5vw;
+  font-weight: bold;
+}
+
+.points {
+  height: 2.1vw;
+  width: 2.1vw;
+  border-width: 0.15vw;
+  border-style: solid;
+  border-radius: 50%;
+  border-color: transparent;
+  text-align: center;
+  margin: 0 0.5vw;
+  padding-top: 0.1vw;
+}
+
+/* §§ --------------- OBJECT STYLES ---------------*/
+
+.img-box {
+  text-align: center;
+  /* margin: 0.1vw; */
+  margin: 0.3vw;
+  touch-action: manipulation;
+  z-index: 1;
+}
+
+#queue .img-box {
+  /* height: 90%; */
+  height: 4vw;
+  width: auto;
+  margin: 0;
+  margin-left: 1.5%;
+  z-index: 0;
+}
+
+.img-box img {
+  height: 100%;
+  width: auto;
+}
+
+.img-box img:hover {
+  cursor: pointer;
+}
+
+/* §§ ----- STYLES FOR PARTICULAR OBJECTS --------- */
+.banana {
+  height: 5.6vw;
+  width: auto;
+  clip-path: polygon(
+    52% 49%,
+    73% 32%,
+    87% 14%,
+    89% 1%,
+    98% 0%,
+    98% 16%,
+    100% 32%,
+    99% 46%,
+    85% 66%,
+    50% 90%,
+    30% 98%,
+    16% 100%,
+    6% 99%,
+    0% 91%,
+    3% 81%,
+    11% 72%,
+    30% 62%
+  );
+}
+.bridge {
+  height: 4.68vw;
+  width: auto;
+}
+.bridge.v1 {
+  clip-path: polygon(
+    0% 28%,
+    18% 9%,
+    37% 0,
+    65% 2%,
+    83% 19%,
+    87% 34%,
+    100% 49%,
+    99% 82%,
+    82% 85%,
+    82% 63%,
+    73% 63%,
+    63% 75%,
+    62% 88%,
+    48% 91%,
+    46% 71%,
+    35% 67%,
+    26% 75%,
+    22% 98%,
+    8% 99%,
+    0% 99%
+  );
+}
+
+.bridge.v2 {
+  height: 3.15vw;
+  clip-path: polygon(
+    40% 0,
+    60% 0,
+    74% 9%,
+    86% 25%,
+    96% 46%,
+    99% 61%,
+    100% 100%,
+    82% 100%,
+    72% 97%,
+    71% 76%,
+    67% 63%,
+    61% 59%,
+    58% 76%,
+    57% 100%,
+    43% 100%,
+    42% 79%,
+    39% 62%,
+    32% 58%,
+    27% 67%,
+    25% 81%,
+    24% 97%,
+    16% 100%,
+    0% 100%,
+    0% 68%,
+    3% 47%,
+    13% 25%,
+    26% 8%
+  );
+}
+.bridge.v3 {
+  height: 4.05vw;
+  clip-path: polygon(
+    48% 0%,
+    70% 0%,
+    84% 0,
+    99% 4%,
+    99% 18%,
+    96% 23%,
+    97% 78%,
+    100% 81%,
+    99% 97%,
+    82% 100%,
+    62% 100%,
+    31% 99%,
+    8% 99%,
+    0 98%,
+    0 85%,
+    4% 81%,
+    4% 28%,
+    0 23%,
+    0 11%,
+    14% 4%,
+    29% 0%
+  );
+}
+.cloth {
+  height: 12.6vw;
+  width: auto;
+}
+.cloth.v1 {
+  clip-path: polygon(
+    37% 0%,
+    99% 50%,
+    100% 78%,
+    77% 78%,
+    37% 101%,
+    30% 88%,
+    3% 92%,
+    0% 34%
+  );
+}
+.cloth.v2 {
+  height: 9.36vw;
+  clip-path: polygon(
+    19% 25%,
+    37% 28%,
+    50% 16%,
+    69% -1%,
+    83% 36%,
+    99% 40%,
+    102% 64%,
+    99% 72%,
+    11% 101%,
+    -1% 64%,
+    17% 47%
+  );
+}
+.cloth.v3 {
+  height: 12.6vw;
+  clip-path: polygon(0 0, 94% 0, 100% 100%, 0% 100%);
+}
+.coin {
+  height: 4.59vw;
+  width: auto;
+}
+.coin.v1,
+.coin.v2 {
+  clip-path: circle(50% at center);
+}
+.flower {
+  height: 8.01vw;
+  width: auto;
+}
+.flower.v1 {
+  clip-path: circle(52% at 51% 51%);
+}
+.flower.v2 {
+  height: 2.34vw;
+  clip-path: polygon(
+    0% 42%,
+    2% 40%,
+    9% 48%,
+    8% 39%,
+    11% 41%,
+    8% 24%,
+    7% 13%,
+    8% 12%,
+    11% 27%,
+    14% 30%,
+    16% 22%,
+    23% 37%,
+    22% 17%,
+    23% 0%,
+    27% 6%,
+    31% 0,
+    45% 36%,
+    49% 26%,
+    50% 28%,
+    55% 9%,
+    57% 16%,
+    60% 6%,
+    63% 4%,
+    65% 15%,
+    67% 30%,
+    66% 41%,
+    72% 31%,
+    77% 24%,
+    82% 14%,
+    85% 5%,
+    85% 8%,
+    90% 1%,
+    91% 10%,
+    96% 3%,
+    94% 21%,
+    86% 43%,
+    91% 44%,
+    99% 33%,
+    101% 36%,
+    95% 51%,
+    100% 47%,
+    100% 58%,
+    96% 66%,
+    91% 74%,
+    93% 73%,
+    100% 67%,
+    96% 82%,
+    88% 91%,
+    82% 88%,
+    77% 95%,
+    71% 95%,
+    66% 97%,
+    60% 88%,
+    58% 93%,
+    49% 94%,
+    45% 95%,
+    39% 86%,
+    32% 96%,
+    26% 100%,
+    21% 100%,
+    15% 99%,
+    8% 92%,
+    0% 72%,
+    4% 76%,
+    1% 59%,
+    1% 59%,
+    8% 71%,
+    0% 50%
+  );
+}
+.fur {
+  height: 9.27vw;
+  width: auto;
+  clip-path: polygon(
+    38% -1%,
+    83% 10%,
+    100% 37%,
+    104% 60%,
+    96% 67%,
+    95% 78%,
+    74% 81%,
+    48% 109%,
+    1% 68%,
+    0% 20%
+  );
+}
+.giant {
+  height: 9.36vw;
+  width: auto;
+}
+.giant.v1 {
+  clip-path: polygon(
+    50% -5%,
+    77% 8%,
+    72% 12%,
+    100% 20%,
+    105% 22%,
+    86% 61%,
+    76% 62%,
+    71% 74%,
+    98% 83%,
+    95% 97%,
+    50% 106%,
+    3% 95%,
+    2% 81%,
+    24% 74%,
+    21% 63%,
+    9% 62%,
+    -5% 22%,
+    0% 20%,
+    25% 12%,
+    19% 8%
+  );
+}
+.giant.v2 {
+  clip-path: polygon(
+    55% -5%,
+    76% 7%,
+    73% 10%,
+    100% 17%,
+    110% 22%,
+    85% 60%,
+    76% 62%,
+    73% 73%,
+    93% 79%,
+    93% 94%,
+    50% 107%,
+    13% 93%,
+    12% 79%,
+    29% 74%,
+    26% 64%,
+    14% 63%,
+    -12% 26%,
+    9% 15%,
+    29% 11%,
+    25% 7%
+  );
+}
+.giant.v3 {
+  clip-path: polygon(
+    29% 10%,
+    33% 0%,
+    66% 0%,
+    78% 10%,
+    87% 14%,
+    84% 16%,
+    83% 28%,
+    74% 33%,
+    76% 41%,
+    63% 58%,
+    49% 72%,
+    100% 79%,
+    100% 93%,
+    84% 98%,
+    64% 100%,
+    24% 100%,
+    0% 95%,
+    0% 81%,
+    9% 78%,
+    13% 62%,
+    9% 55%,
+    10% 43%,
+    4% 15%
+  );
+}
+
+.peg {
+  height: 5.67vw;
+  width: auto;
+}
+.peg.v1 {
+  clip-path: polygon(8% -2%, 100% 64%, 100% 70%, 62% 59%, 115% 121%, -1% 29%);
+}
+.peg.v2 {
+  height: 5.22vw;
+  clip-path: polygon(
+    11% 0%,
+    13% -1%,
+    100% 86%,
+    100% 94%,
+    95% 92%,
+    92% 91%,
+    64% 70%,
+    63% 72%,
+    98% 96%,
+    98% 102%,
+    -1% 62%,
+    0% 55%,
+    4% 49%,
+    10% 46%,
+    17% 48%,
+    25% 58%,
+    28% 53%,
+    36% 56%,
+    38% 47%,
+    31% 40%,
+    30% 33%,
+    22% 31%,
+    14% 22%,
+    11% 11%
+  );
+}
+.pig {
+  height: 4.23vw;
+  width: auto;
+}
+.pig.v1 {
+  clip-path: polygon(
+    0 42%,
+    10% 36%,
+    15% 15%,
+    28% 1%,
+    36% 1%,
+    39% 6%,
+    40% 10%,
+    62% 0,
+    79% 0%,
+    92% 8%,
+    92% 27%,
+    94% 43%,
+    98% 51%,
+    98% 62%,
+    101% 86%,
+    97% 92%,
+    91% 88%,
+    89% 70%,
+    77% 58%,
+    63% 69%,
+    49% 68%,
+    44% 89%,
+    44% 100%,
+    33% 100%,
+    36% 74%,
+    32% 82%,
+    25% 81%,
+    32% 59%,
+    20% 65%,
+    6% 59%,
+    -2% 50%
+  );
+}
+
+.pig.v2 {
+  clip-path: polygon(
+    59% 9%,
+    65% 0%,
+    73% 0%,
+    84% 11%,
+    88% 24%,
+    91% 34%,
+    100% 39%,
+    100% 51%,
+    89% 60%,
+    77% 64%,
+    68% 59%,
+    69% 71%,
+    75% 96%,
+    74% 100%,
+    66% 100%,
+    62% 87%,
+    54% 80%,
+    49% 68%,
+    36% 66%,
+    25% 58%,
+    23% 70%,
+    15% 67%,
+    10% 72%,
+    8% 84%,
+    2% 87%,
+    0% 81%,
+    0% 74%,
+    6% 50%,
+    10% 27%,
+    10% 9%,
+    16% 5%,
+    25% 0%,
+    40% 0%
+  );
+}
+.pig.v3 {
+  clip-path: polygon(
+    46% 0%,
+    68% 1%,
+    83% 9%,
+    92% 14%,
+    97% 34%,
+    96% 41%,
+    100% 50%,
+    100% 70%,
+    99% 83%,
+    100% 92%,
+    85% 95%,
+    76% 91%,
+    75% 81%,
+    74% 74%,
+    60% 79%,
+    45% 79%,
+    31% 73%,
+    25% 89%,
+    23% 100%,
+    13% 100%,
+    0% 99%,
+    0% 94%,
+    3% 87%,
+    2% 57%,
+    7% 40%,
+    4% 31%,
+    6% 21%,
+    14% 10%,
+    29% 2%
+  );
+}
+.plane {
+  height: 7.38vw;
+  width: auto;
+}
+.plane.v1 {
+  clip-path: polygon(
+    0% 53%,
+    1% 36%,
+    5% 35%,
+    6% 46%,
+    27% 36%,
+    27% 0%,
+    45% 0%,
+    50% 15%,
+    53% 37%,
+    66% 38%,
+    75% 21%,
+    82% 20%,
+    86% 39%,
+    102% 42%,
+    87% 50%,
+    86% 72%,
+    80% 73%,
+    68% 57%,
+    55% 59%,
+    55% 81%,
+    50% 100%,
+    32% 100%,
+    29% 63%,
+    8% 61%,
+    7% 69%,
+    2% 68%
+  );
+}
+.plane.v2 {
+  height: 4.68vw;
+  clip-path: polygon(
+    50% -2%,
+    53% 13%,
+    74% 15%,
+    100% 20%,
+    100% 27%,
+    71% 26%,
+    58% 26%,
+    60% 35%,
+    71% 36%,
+    71% 40%,
+    61% 42%,
+    62% 52%,
+    67% 54%,
+    69% 59%,
+    96% 63%,
+    99% 70%,
+    94% 72%,
+    62% 74%,
+    66% 79%,
+    67% 91%,
+    65% 99%,
+    59% 98%,
+    58% 91%,
+    56% 88%,
+    55% 76%,
+    43% 76%,
+    43% 85%,
+    39% 98%,
+    34% 98%,
+    32% 89%,
+    32% 80%,
+    36% 74%,
+    3% 71%,
+    1% 67%,
+    4% 62%,
+    29% 59%,
+    31% 54%,
+    36% 52%,
+    37% 42%,
+    29% 40%,
+    29% 35%,
+    39% 36%,
+    42% 25%,
+    0% 26%,
+    0% 19%,
+    27% 15%,
+    47% 13%
+  );
+}
+.plane.v3 {
+  height: 4.68vw;
+  clip-path: polygon(
+    13% 0%,
+    24% 0%,
+    49% 7%,
+    77% 19%,
+    90% -6%,
+    91% 13%,
+    89% 30%,
+    91% 34%,
+    87% 39%,
+    108% 53%,
+    84% 49%,
+    81% 65%,
+    75% 57%,
+    68% 62%,
+    83% 73%,
+    85% 81%,
+    74% 88%,
+    56% 77%,
+    55% 90%,
+    49% 100%,
+    42% 94%,
+    42% 83%,
+    40% 75%,
+    33% 85%,
+    27% 82%,
+    25% 72%,
+    29% 64%,
+    16% 60%,
+    11% 53%,
+    0% 43%,
+    0% 34%,
+    3% 29%,
+    11% 31%,
+    14% 26%,
+    31% 13%,
+    13% 5%
+  );
+}
+.pokerchip {
+  height: 4.23vw;
+  width: auto;
+}
+.pole {
+  height: 8.01vw;
+  width: auto;
+  clip-path: polygon(99% -2%, 102% 5%, 0% 103%, -2% 94%);
+}
+.puzzle {
+  height: 8.01vw;
+  width: auto;
+}
+.puzzle.v1 {
+  clip-path: polygon(
+    5% 26%,
+    36% 26%,
+    38% 21%,
+    33% 16%,
+    33% 7%,
+    46% -1%,
+    60% -1%,
+    65% 3%,
+    65% 10%,
+    61% 15%,
+    59% 22%,
+    63% 25%,
+    94% 25%,
+    97% 48%,
+    95% 50%,
+    88% 51%,
+    78% 44%,
+    74% 46%,
+    72% 55%,
+    74% 65%,
+    81% 70%,
+    87% 66%,
+    93% 66%,
+    97% 70%,
+    100% 100%,
+    64% 100%,
+    61% 97%,
+    61% 92%,
+    65% 84%,
+    61% 75%,
+    51% 72%,
+    42% 80%,
+    46% 95%,
+    40% 100%,
+    0% 99%,
+    2% 71%,
+    8% 67%,
+    16% 74%,
+    22% 75%,
+    27% 64%,
+    22% 51%,
+    17% 51%,
+    9% 54%,
+    4% 51%
+  );
+}
+.puzzle.v2 {
+  height: 7.74vw;
+  clip-path: polygon(
+    5% 25%,
+    34% 25%,
+    38% 21%,
+    32% 11%,
+    32% 3%,
+    41% -1%,
+    50% -1%,
+    59% 4%,
+    63% 10%,
+    59% 20%,
+    61% 24%,
+    90% 23%,
+    93% 49%,
+    87% 53%,
+    77% 49%,
+    73% 51%,
+    71% 62%,
+    73% 72%,
+    79% 75%,
+    87% 67%,
+    93% 66%,
+    97% 71%,
+    100% 100%,
+    57% 100%,
+    53% 95%,
+    53% 89%,
+    56% 82%,
+    53% 73%,
+    43% 71%,
+    36% 76%,
+    34% 84%,
+    39% 94%,
+    36% 100%,
+    0% 100%,
+    4% 68%,
+    8% 65%,
+    13% 66%,
+    20% 69%,
+    26% 61%,
+    27% 49%,
+    22% 44%,
+    12% 51%,
+    5% 49%,
+    3% 45%
+  );
+}
+.ring {
+  height: 4.41vw;
+  width: auto;
+}
+.ring.v1 {
+  clip-path: circle(50% at center);
+}
+.ring.v2 {
+  height: 2.34vw;
+  clip-path: ellipse(51% 54% at 50% 49%);
+}
+.rummikubtile {
+  height: 7.02vw;
+  width: auto;
+}
+.scissors {
+  height: 4.77vw;
+  width: auto;
+  clip-path: polygon(
+    0% 29%,
+    0% 21%,
+    12% 16%,
+    48% 37%,
+    59% 27%,
+    67% 23%,
+    70% 10%,
+    76% 1%,
+    91% 0%,
+    100% 10%,
+    100% 28%,
+    93% 39%,
+    71% 43%,
+    63% 46%,
+    82% 57%,
+    89% 57%,
+    99% 67%,
+    101% 84%,
+    95% 97%,
+    80% 101%,
+    70% 91%,
+    68% 71%,
+    51% 60%,
+    10% 85%,
+    0% 79%,
+    0% 72%,
+    34% 50%
+  );
+}
+.stone {
+  height: 4.23vw;
+  width: auto;
+  clip-path: polygon(
+    -2% 63%,
+    1% 44%,
+    6% 33%,
+    20% 16%,
+    36% 4%,
+    44% 0%,
+    63% 0%,
+    73% 5%,
+    87% 20%,
+    97% 42%,
+    103% 60%,
+    98% 77%,
+    91% 88%,
+    79% 99%,
+    59% 99%,
+    7% 81%
+  );
+}
+.ticket {
+  height: 8.82vw;
+  width: auto;
+}
+.token {
+  height: 5.04vw;
+  width: auto;
+}
+.token.v1 {
+  clip-path: ellipse(50% 51% at 50% 50%);
+}
+.token.v2 {
+  clip-path: ellipse(51% 51% at 50% 50%);
+}
+.triangle {
+  height: 5.04vw;
+  width: auto;
+  clip-path: polygon(-10% 110%, 45% 0%, 50% 0%, 107% 96%);
+}
+
+#ticker-objects .img-box {
+  position: relative;
+  display: inline-block;
+  /* padding-left: 22px; */
+  padding-left: 1.2vw;
+  /* ticker only runs smoothly without any margins: */
+  margin: 0;
+  /* text-align: center; */
+  clip-path: unset;
+}
