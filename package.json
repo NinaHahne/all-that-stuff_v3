@@ -15,5 +15,10 @@
   "bugs": {
     "url": "https://github.com/NinaHahne/AllThatStuff_v3/issues"
   },
-  "homepage": "https://github.com/NinaHahne/AllThatStuff_v3#readme"
+  "homepage": "https://github.com/NinaHahne/AllThatStuff_v3#readme",
+  "dependencies": {
+    "crypto-random-string": "^3.2.0",
+    "express": "^4.17.1",
+    "socket.io": "^2.3.0"
+  }
 }

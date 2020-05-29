@@ -1,0 +1,172 @@
+/*
+  grey: rgb(128, 128, 128)
+  purple: rgb(75, 0, 130)
+  blue: rgb(0, 51, 119)
+  green: rgb(46, 139, 87)
+  yellow: rgb(255, 215, 0)
+  orange: rgb(255, 140, 0)
+  red: rgb(185, 0, 20)
+  pink: rgb(213, 0, 102)
+*/
+
+* {
+  box-sizing: border-box;
+  /* to avoid red highlight when user selects elements: */
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+  /* disable double-tap zoom on any element: */
+  touch-action: manipulation;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  /* min-height: 50vw; */
+  width: 100%;
+  font-size: 1.6vw;
+  font-family: "Life Savers", cursive;
+  overflow: hidden;
+  /******background image******/
+  background-image: url("/images/white-wall.png");
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+  background-repeat: repeat-y;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+/* §§ ***************************
+              BUTTONS
+   ****************************** */
+
+button {
+  position: relative;
+  display: inline-block;
+  padding: 0.4vw;
+  font-size: 1.6vw;
+  text-align: center;
+  color: black;
+  background-color: rgba(255, 255, 255, 0);
+  border-radius: 0.6vw;
+  border: 0.1vw solid black;
+  cursor: pointer;
+  font-family: "Life Savers", cursive;
+  font-weight: 700;
+  margin: 0.4vw 0vw;
+  z-index: 2000;
+
+  -webkit-transition: background-color 0.4s ease-out, color 0.4s ease-out,
+    transform 0.4s ease-out;
+  -moz-transition: background-color 0.4s ease-out, color 0.4s ease-out,
+    transform 0.4s ease-out;
+  -o-transition: background-color 0.4s ease-out, color 0.4s ease-out,
+    transform 0.4s ease-out;
+  transition: background-color 0.4s ease-out, color 0.4s ease-out,
+    transform 0.4s ease-out;
+}
+
+button:hover {
+  background-color: black;
+  color: white;
+}
+
+button:active {
+  transform: translateY(2px);
+}
+
+button:focus {
+  outline: none;
+}
+
+/* §§ ***************************
+          AllThatStuff LOGO
+   ****************************** */
+
+.stuff-logo {
+  /* padding: 10% 8%; */
+  padding: 1.2vw;
+  /* font-family: "Life Savers", cursive; */
+  text-align: center;
+}
+
+.stuff-logo h1 {
+  /* font-size: 13.2vh; */
+  font-size: 7vw;
+  font-weight: 800;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.stuff-logo h2 {
+  /* font-size: 8.3vh; */
+  font-size: 4.4vw;
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* §§ ***************************
+            TITLE SCREEN
+      (intro-screen-template)
+   ****************************** */
+#gameArea {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.titleWrapper {
+}
+
+.buttons {
+  display: flex;
+  width: 100%;
+  justify-content: space-around;
+}
+
+/* §§ ***************************
+          START SCREEN
+      (create-game-template)
+   ****************************** */
+.createGameWrapper,
+.joinGameWrapper,
+.gameOver {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+/* §§ ***************************
+          JOIN SCREEN
+      (join-game-template)
+  ****************************** */
+
+/* §§ ***************************
+          PLAYER GAME SCREEN
+   ****************************** */
+
+/* §§ ***************************
+             HOST SCREEN
+        (host-game-template)
+    ****************************** */
