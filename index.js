@@ -10,6 +10,10 @@ const game = require("./game");
 // Serve static html, js, css, and image files from the 'public' directory:
 app.use(express.static("./public"));
 
+// app.get("/", function(req, res) {
+//   res.sendFile(__dirname + "/public/index.html");
+// });
+
 // // Create a Node.js based http server on port 8080
 const server = require("http")
   .createServer(app)
