@@ -69,8 +69,8 @@ function hostPrepareGame(gameId) {
     mySocketId: sock.id,
     gameId: gameId
   };
-  console.log("All Players Present. Preparing game...");
-  // console.log('Game Master clicked "everybody\'s in / start game". Preparing game...');
+  // console.log("All Players Present. Preparing game...");
+  console.log('Game Master clicked "everybody\'s in / start game". Preparing game...');
   io.sockets.in(data.gameId).emit("beginNewGame", data);
 }
 
@@ -113,7 +113,7 @@ function hostNextRound(data) {
  * @param data Contains data entered via player's input - playerName and gameId.
  */
 function playerJoinsRoom(data) {
-  console.log('Player ' + data.playerName + 'attempting to join game room: ' + data.gameId );
+  console.log('Player ' + data.playerName + ' attempting to join game room: ' + data.gameId );
 
   // A reference to the player's Socket.IO socket object
   var sock = this;

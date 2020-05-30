@@ -72,7 +72,8 @@ jQuery(
        */
       beginNewGame: function(data) {
         // TODO: delete countdown here
-        App[App.myRole].gameCountdown(data);
+        // App[App.myRole].gameCountdown(data);
+        App[App.myRole].displayStartMenu(data);
         console.log('begin new game...');
       },
 
@@ -169,7 +170,8 @@ jQuery(
         App.$templateNewGame = $("#create-game-template").html();
         App.$templateJoinGame = $("#join-game-template").html();
         App.$templateHostGame = $("#host-game-template").html();
-        App.$templateStartMenu = $("#start-menu-template").html();
+        App.$templateHostStartMenu = $("#host-start-menu-template").html();
+        App.$templatePlayerStartMenu = $("#player-start-menu-template").html();
       },
 
       /**
@@ -248,21 +250,34 @@ jQuery(
           App.myRole = "Host";
           App.Host.numPlayersInRoom = 0;
 
-          App.Host.displayNewGameScreen();
+          // App.Host.displayNewGameScreen();
+          App.Host.displayStartMenu();
           // console.log("Game started with ID: " + App.gameId + ' by host: ' + App.mySocketId);
         },
 
+        // /**
+        //  * Show the Host screen containing the game URL and unique game ID
+        //  */
+        // displayNewGameScreen: function() {
+        //   // Fill the game screen with the appropriate HTML
+        //   App.$gameArea.html(App.$templateNewGame);
+        //
+        //   // Display the URL on screen
+        //   $("#gameURL").text(window.location.href);
+        //   // App.doTextFit("#gameURL");
+        //
+        //   // Show the gameId / room id on screen
+        //   $("#spanNewGameCode").text(App.gameId);
+        // },
+
         /**
-         * Show the Host screen containing the game URL and unique game ID
+         * Show the Host start menu screen containing the game URL and game ID
          */
-        displayNewGameScreen: function() {
+        displayStartMenu: function() {
           // Fill the game screen with the appropriate HTML
-          App.$gameArea.html(App.$templateNewGame);
-
+          App.$gameArea.html(App.$templateHostStartMenu);
           // Display the URL on screen
-          $("#gameURL").text(window.location.href);
-          // App.doTextFit("#gameURL");
-
+          // $("#gameURL").text(window.location.href);
           // Show the gameId / room id on screen
           $("#spanNewGameCode").text(App.gameId);
         },
@@ -274,7 +289,8 @@ jQuery(
         updateWaitingScreen: function(data) {
           // If this is a restarted game, show the screen.
           if (App.Host.isNewGame) {
-            App.Host.displayNewGameScreen();
+            // App.Host.displayNewGameScreen();
+            App.Host.displayStartMenu();
           }
           // Update host screen
           $("#playersWaiting")
@@ -287,50 +303,49 @@ jQuery(
           // Increment the number of players in the room
           App.Host.numPlayersInRoom += 1;
 
-          // TODO: delete 2 player limit and countdown here..
-          // instead send the host and all joined players to the start menu, where the
-          // first player selecting a color gets the game master...
+          // TODO: send the host and all joined players to the start menu,
+          // where the first player selecting a color gets the game master...
 
-          // If two players have joined, start the game!
-          if (App.Host.numPlayersInRoom === 2) {
-            // console.log('Room is full. Almost ready!');
-
-            // Let the server know that two players are present.
-            IO.socket.emit("hostRoomFull", App.gameId);
-          }
+          // // If two players have joined, start the game!
+          // if (App.Host.numPlayersInRoom === 2) {
+          //   // console.log('Room is full. Almost ready!');
+          //
+          //   // Let the server know that two players are present.
+          //   IO.socket.emit("hostRoomFull", App.gameId);
+          // }
         },
 
-        /**
-         * Show the countdown screen
-         */
-        gameCountdown: function() {
-          // Prepare the game screen with new HTML
-          App.$gameArea.html(App.$templateHostGame);
-          // App.doTextFit("#hostWord");
-
-          // Begin the on-screen countdown timer
-          var $secondsLeft = $("#hostWord");
-          App.countDown($secondsLeft, 5, function() {
-            IO.socket.emit("hostCountdownFinished", App.gameId);
-          });
-
-          // Display the players' names on screen
-          $("#player1Score")
-            .find(".playerName")
-            .html(App.Host.players[0].playerName);
-
-          $("#player2Score")
-            .find(".playerName")
-            .html(App.Host.players[1].playerName);
-
-          // Set the Score section on screen to 0 for each player.
-          $("#player1Score")
-            .find(".score")
-            .attr("id", App.Host.players[0].mySocketId);
-          $("#player2Score")
-            .find(".score")
-            .attr("id", App.Host.players[1].mySocketId);
-        },
+        // /**
+        //  * Show the countdown screen
+        //  */
+        // gameCountdown: function() {
+        //   // Prepare the game screen with new HTML
+        //   App.$gameArea.html(App.$templateHostGame);
+        //   // App.doTextFit("#hostWord");
+        //
+        //   // Begin the on-screen countdown timer
+        //   var $secondsLeft = $("#hostWord");
+        //   App.countDown($secondsLeft, 5, function() {
+        //     IO.socket.emit("hostCountdownFinished", App.gameId);
+        //   });
+        //
+        //   // Display the players' names on screen
+        //   $("#player1Score")
+        //     .find(".playerName")
+        //     .html(App.Host.players[0].playerName);
+        //
+        //   $("#player2Score")
+        //     .find(".playerName")
+        //     .html(App.Host.players[1].playerName);
+        //
+        //   // Set the Score section on screen to 0 for each player.
+        //   $("#player1Score")
+        //     .find(".score")
+        //     .attr("id", App.Host.players[0].mySocketId);
+        //   $("#player2Score")
+        //     .find(".score")
+        //     .attr("id", App.Host.players[1].mySocketId);
+        // },
 
         /**
          * Show the word for the current round on screen.
@@ -539,27 +554,46 @@ jQuery(
          */
         updateWaitingScreen: function(data) {
           if (IO.socket.id === data.mySocketId) {
+            // if it was me who just joined the game room
             App.myRole = "Player";
             App.gameId = data.gameId;
 
-            $("#playerWaitingMessage")
-              .append("<p/>")
-              .text(
-                "Joined Game " +
-                  data.gameId +
-                  ". Please wait for game to begin."
-              );
+            // $("#playerWaitingMessage")
+            //   .append("<p/>")
+            //   .text(
+            //     "Joined Game " +
+            //       data.gameId +
+            //       ". Please wait for game to begin."
+            //   );
+
+            // Fill the game screen with the appropriate HTML
+            App.$gameArea.html(App.$templatePlayerStartMenu);
+
+            $("#welcomePlayer")
+              .html(`Welcome, ${data.playerName}!<br>Please pick a color.`);
+
           }
+          $("#playersWaiting")
+            .append("<p/>")
+            .text("Player " + data.playerName + " joined the game.");
         },
 
+        // /**
+        //  * Display 'Get Ready' while the countdown timer ticks down.
+        //  * @param hostData
+        //  */
+        // gameCountdown: function(hostData) {
+        //   App.Player.hostSocketId = hostData.mySocketId;
+        //   $("#gameArea").html('<div class="gameOver">Get Ready!</div>');
+        // },
+
         /**
-         * Display 'Get Ready' while the countdown timer ticks down.
-         * @param hostData
+         * Show the player start menu screen
          */
-        // TODO: delete countdown
-        gameCountdown: function(hostData) {
+        displayStartMenu: function(hostData) {
           App.Player.hostSocketId = hostData.mySocketId;
-          $("#gameArea").html('<div class="gameOver">Get Ready!</div>');
+          // Fill the game screen with the appropriate HTML
+          App.$gameArea.html(App.$templatePlayerStartMenu);
         },
 
         /**
