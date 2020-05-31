@@ -28,7 +28,6 @@
 
     <!-- Main Title Screen that appears when the page loads for the first time -->
     <script id="intro-screen-template" type="text/template">
-
       <div class="titleWrapper">
 
         <div class="stuff-logo">
@@ -157,27 +156,17 @@
               alt="english language icon"
               />
             </div>
+            <div id="playersWaiting"></div>
           </div>
 
-          <div id="logo-button-box">
-            <div class="stuff-logo">
+          <div id="logo-button-box" class="host">
+            <div class="stuff-logo bigger">
               <h2>All&nbsp;That</h2>
               <h1>Stuff</h1>
             </div>
 
-            <div class="buttonBox hidden">
-              <div>press</div>
-              <button id="play">
-                <img
-                class="crown"
-                src="/images/crown.png"
-                alt="crown"
-                />
-                everybody's in</button>
-                <div>to start the game</div>
-            </div>
-            <div class="waiting-msg hidden">
-                waiting for other players
+            <div class="waiting-msg">
+                waiting for players
             </div>
           </div>
           <div id="start-right">
@@ -189,7 +178,6 @@
               <div id="spanNewGameCode" class="gameId">Error!</div>
             </div>
 
-            <div id="playersWaiting"></div>
           </div>
         </div>
 
@@ -377,7 +365,7 @@
           <div class="buttonsBox">
             <button id="btnPlay" class="btn">play</button>
           </div>
-          
+
       </div>
     </script>
 
@@ -473,6 +461,9 @@
             <div class="player-points hidden"></div>
           </div>
         </div>
+        <div id="welcomeInstruction">
+          <div>please pick a color</div>
+        </div>
         <div id="start-menu-middle">
           <div id="start-left">
             <div id="chosen-language">
@@ -492,36 +483,33 @@
               alt="english language icon"
               />
             </div>
+            <!-- <div id="welcomePlayer">Welcome, Anonymusbob!</div> -->
+            <div id="welcomePlayer"></div>
           </div>
 
           <div id="logo-button-box">
-            <div class="stuff-logo">
+            <div class="stuff-logo bigger">
               <h2>All&nbsp;That</h2>
               <h1>Stuff</h1>
             </div>
-
-            <div class="buttonBox hidden">
-              <div>press</div>
-              <button id="play">
-                <img
-                class="crown"
-                src="/images/crown.png"
-                alt="crown"
-                />
-                everybody's in</button>
-                <div>to start the game</div>
-            </div>
-            <div class="waiting-msg hidden">
-                waiting for other players
-            </div>
           </div>
           <div id="start-right">
-            <div id="infoBox">
-              <div id="welcomePlayer">Welcome, Anonymusbob!</div>
-              <div id="welcomeInstruction">Please pick a color.</div>
+            <div id="msg-or-btn-box">
+              <div class="buttonBox hidden">
+                <div>press</div>
+                <button id="play">
+                  <img
+                  class="crown"
+                  src="/images/crown.png"
+                  alt="crown"
+                  />
+                  everybody's in</button>
+                <div>to start the game</div>
+              </div>
+              <div class="waiting-msg">
+                waiting for other players
+              </div>
             </div>
-
-            <div id="playersWaiting"></div>
           </div>
         </div>
 

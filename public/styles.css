@@ -34,7 +34,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  /* min-height: 50vw; */
+  min-height: 48vw;
   width: 100%;
   font-size: 1.6vw;
   font-family: "Life Savers", cursive;
@@ -57,14 +57,6 @@ body {
 /* §§ ***************************
               BUTTONS
    ****************************** */
-
-.buttonBox {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex-grow: 1;
-}
 
 button {
   position: relative;
@@ -137,7 +129,7 @@ button:focus {
    ****************************** */
 
 .stuff-logo {
-  padding: 1.6vw 1.2vw;
+  padding: 1.2vw;
   text-align: center;
 }
 
@@ -157,6 +149,14 @@ button:focus {
   margin-bottom: 0;
 }
 
+.stuff-logo.bigger h1 {
+  font-size: 10.2vw;
+}
+
+.stuff-logo.bigger h2 {
+  font-size: 6.4vw;
+}
+
 /* §§ ***************************
               INPUT FIELDS
    ****************************** */
@@ -174,11 +174,11 @@ input {
 
 input:hover,
 input:focus {
-   box-shadow: inset 0vw 0vw 0vw 0.15vw black;
+  box-shadow: inset 0vw 0vw 0vw 0.15vw black;
 }
 
 input:focus {
-   outline: none;
+  outline: none;
 }
 
 #inputGameId {
@@ -247,9 +247,9 @@ input:focus {
 #select-players {
   display: flex;
   width: 100%;
-  height: 12vw;
+  height: 10vw;
   justify-content: space-between;
-  padding: 2vw;
+  padding: 2vw 2vw 1.4vw 2vw;
 }
 
 #start-menu-middle {
@@ -266,20 +266,39 @@ input:focus {
   flex-direction: column;
   height: 100%;
   width: 30%;
+  justify-content: center;
+}
+
+/* #logo-button-box.host {
+  justify-content: center;
+} */
+
+#msg-or-btn-box {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  /* flex-grow: 1; */
 }
 
 #start-left,
 #start-right {
   display: flex;
   align-items: center;
-  /* justify-content: center; */
+  justify-content: space-between;
   width: 35%;
+}
+
+#start-left {
+  padding: 1.2vw 2vw 1.2vw 0vw;
 }
 
 #start-right {
   flex-direction: column;
-  /* justify-content: center; */
-  padding-top: 1.2vw;
+  justify-content: center;
+  /* padding-top: 1.2vw; */
 }
 
 #main-game {
@@ -670,6 +689,7 @@ input:focus {
   height: 6vw;
   width: 6vw;
   margin: 0.3vw;
+  flex-shrink: 0;
 
   -webkit-transition: transform 0.4s ease-out;
   -moz-transition: transform 0.4s ease-out;
@@ -701,13 +721,6 @@ input:focus {
   margin-bottom: 1%;
 }
 
-#logo-button-box .waiting-msg {
-  text-align: center;
-  position: relative;
-  bottom: 15%;
-  animation: pulseMessage 2s infinite linear;
-}
-
 #infoBox {
   text-align: center;
   margin-bottom: 4%;
@@ -732,15 +745,120 @@ input:focus {
 }
 
 #welcomePlayer {
-  font-size: 3vw;
+  font-size: 2.6vw;
   font-weight: 700;
-  margin-bottom: 3%;
+  /* margin-bottom: 3%; */
+  margin-left: 3vw;
 }
 
 #welcomeInstruction {
-  font-size: 3vw;
+  /* font-size: 2vw; */
+  /* font-weight: 700; */
+  /* animation: pulseColorChange 4s infinite linear; */
+  display: flex;
+  padding: 0 2vw;
+}
+
+#welcomeInstruction div {
+  /* margin-top: 0; */
+  font-size: 2vw;
   font-weight: 700;
+  animation: floatColorChange 16s infinite linear;
+}
+
+.waiting-msg {
+  font-size: 2vw;
+  text-align: center;
   animation: pulseMessage 2s infinite linear;
+}
+
+#msg-or-btn-box .waiting-msg {
+  position: absolute;
+}
+
+/* #logo-button-box:not(.host) .waiting-msg {
+  position: relative;
+  bottom: 15%;
+} */
+
+.buttonBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* flex-grow: 1; */
+}
+
+@keyframes floatColorChange {
+  0%,
+  100% {
+    transform: translateX(0);
+    color: rgb(128, 128, 128);
+  }
+  7.25%,
+  92.75% {
+    /* transform: translateX(8vw); */
+    color: rgb(75, 0, 130);
+  }
+  12.5%,
+  87.5% {
+    /* transform: translateX(21vw); */
+    color: rgb(0, 51, 119);
+  }
+  19.75%,
+  80.25% {
+    /* transform: translateX(34vw); */
+    color: rgb(46, 139, 87);
+  }
+  27%,
+  73% {
+    /* transform: translateX(47vw); */
+    color: rgb(255, 215, 0);
+  }
+  34.25%,
+  65.75% {
+    /* transform: translateX(59vw); */
+    color: rgb(255, 140, 0);
+  }
+  41.5%,
+  58.5% {
+    /* transform: translateX(72vw); */
+    color: rgb(185, 0, 20);
+  }
+  50% {
+    transform: translateX(80vw);
+    color: rgb(213, 0, 102);
+  }
+}
+
+@keyframes pulseColorChange {
+  0%,
+  100% {
+    /* transform: scale(1); */
+    color: rgb(128, 128, 128);
+  }
+  12.5% {
+    color: rgb(75, 0, 130);
+  }
+  25% {
+    color: rgb(0, 51, 119);
+  }
+  37.5% {
+    color: rgb(46, 139, 87);
+  }
+  50% {
+    transform: scale(1.1);
+    color: rgb(255, 215, 0);
+  }
+  62.5% {
+    color: rgb(255, 140, 0);
+  }
+  75% {
+    color: rgb(185, 0, 20);
+  }
+  87.5% {
+    color: rgb(213, 0, 102);
+  }
 }
 
 #construction-area .message {

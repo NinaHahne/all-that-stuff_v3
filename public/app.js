@@ -579,8 +579,7 @@ jQuery(
             App.Player.displayStartMenu(data);
           }
 
-          let message = `<p>${data.playerName} joined the game.</p>`;
-          $("#playersWaiting").append(message);
+          // TODO: update selected pieces
         },
 
         // /**
@@ -597,10 +596,8 @@ jQuery(
           // Fill the game screen with the appropriate HTML
           App.$gameArea.html(App.$templatePlayerStartMenu);
 
-          $("#welcomePlayer")
-            .html(`Welcome, ${hostData.playerName}!`);
-          $("#welcomeInstruction")
-            .html('Please pick a color.');
+          // $("#welcomePlayer")
+          //   .html(`Welcome, ${hostData.playerName}!`);
 
           // object ticker on start menu:
           App.tickerObjects = document.getElementById("ticker-objects");
