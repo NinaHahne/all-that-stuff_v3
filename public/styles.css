@@ -105,6 +105,11 @@ button:focus {
   outline: none;
 }
 
+/* on title screen & join screen: */
+.buttonsBox button {
+  font-size: 2.2vw;
+}
+
 #done-btn {
   position: absolute;
   border-radius: 0.4vw 1vw 0.4vw 1vw;
@@ -132,22 +137,52 @@ button:focus {
    ****************************** */
 
 .stuff-logo {
-  padding: 1.2vw;
+  padding: 1.6vw 1.2vw;
   text-align: center;
 }
 
 .stuff-logo h1 {
-  font-size: 7vw;
+  /* font-size: 7vw; */
+  font-size: 8.8vw;
   font-weight: 800;
   margin-top: 0;
   margin-bottom: 0;
 }
 
 .stuff-logo h2 {
-  font-size: 4.4vw;
+  /* font-size: 4.4vw; */
+  font-size: 5.4vw;
   font-weight: 700;
   margin-top: 0;
   margin-bottom: 0;
+}
+
+/* §§ ***************************
+              INPUT FIELDS
+   ****************************** */
+input {
+  width: 20vw;
+  background-color: rgba(134, 134, 134, 0.4);
+  color: black;
+  font-family: "Life Savers", cursive;
+  font-size: 2.6vw;
+  font-weight: 700;
+  border: none;
+  border-radius: 0.6vw;
+  padding: 0.3vw 0.6vw;
+}
+
+input:hover,
+input:focus {
+   box-shadow: inset 0vw 0vw 0vw 0.15vw black;
+}
+
+input:focus {
+   outline: none;
+}
+
+#inputGameId {
+  text-transform: uppercase;
 }
 
 /* §§ ***************************
@@ -163,12 +198,8 @@ button:focus {
   justify-content: center;
 }
 
-.titleWrapper {
-}
-
-.buttons {
+.buttonsBox {
   display: flex;
-  width: 100%;
   justify-content: space-around;
 }
 
@@ -185,15 +216,6 @@ button:focus {
   width: 100%;
   align-items: center;
   justify-content: center;
-}
-
-/* §§ ***************************
-          JOIN SCREEN
-      (join-game-template)
-  ****************************** */
-
-#inputGameId {
-  text-transform: uppercase;
 }
 
 /* §§ ***************************
@@ -218,7 +240,7 @@ button:focus {
   height: 100%;
   width: 100%;
   flex-shrink: 0;
-  padding-bottom: 16vw;
+  padding-bottom: 14vw;
   z-index: 100;
 }
 
@@ -410,7 +432,7 @@ button:focus {
   bottom: 0%;
   width: 100%;
   overflow-x: hidden;
-  height: 16vw;
+  height: 14vw;
   flex-shrink: 0;
 }
 
@@ -423,7 +445,7 @@ button:focus {
   left: 0;
   white-space: nowrap;
   font-size: 0; /* to remove white space between the ticker elements, that causes ticker to jump in the first round*/
-  height: 16vw;
+  height: 14vw;
 }
 
 #ticker-objects .img-box img:hover {
@@ -672,6 +694,13 @@ button:focus {
 
 /* §§ ---------- MESSAGES & TURN INDICATOR----------------*/
 
+.inputBox {
+  display: flex;
+  flex-direction: column;
+  font-size: 2.6vw;
+  margin-bottom: 1%;
+}
+
 #logo-button-box .waiting-msg {
   text-align: center;
   position: relative;
@@ -693,16 +722,25 @@ button:focus {
   /* font-size: 2.8vw; */
   font-weight: 800;
   margin-bottom: 3%;
+  color: blue;
 }
 
 .gameId {
-  font-size: 7.2vw;
+  font-size: 5.2vw;
   font-weight: 800;
+  color: blue;
 }
 
 #welcomePlayer {
   font-size: 3vw;
   font-weight: 700;
+  margin-bottom: 3%;
+}
+
+#welcomeInstruction {
+  font-size: 3vw;
+  font-weight: 700;
+  animation: pulseMessage 2s infinite linear;
 }
 
 #construction-area .message {
