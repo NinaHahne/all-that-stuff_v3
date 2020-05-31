@@ -175,11 +175,11 @@ jQuery(
         // Templates
         App.$gameArea = $("#gameArea");
         App.$templateIntroScreen = $("#intro-screen-template").html();
-        App.$templateNewGame = $("#create-game-template").html();
+        // App.$templateNewGame = $("#create-game-template").html();
         App.$templateJoinGame = $("#join-game-template").html();
-        App.$templateHostGame = $("#host-game-template").html();
         App.$templateHostStartMenu = $("#host-start-menu-template").html();
         App.$templatePlayerStartMenu = $("#player-start-menu-template").html();
+        // App.$templateHostGame = $("#host-game-template").html();
 
       },
 
@@ -592,15 +592,15 @@ jQuery(
         //   $("#gameArea").html('<div class="gameOver">Get Ready!</div>');
         // },
 
-        /**
-         * Show the player start menu screen
-         */
+        // Show the player start menu screen:
         displayStartMenu: function(hostData) {
           // Fill the game screen with the appropriate HTML
           App.$gameArea.html(App.$templatePlayerStartMenu);
 
           $("#welcomePlayer")
-            .html(`Welcome, ${hostData.playerName}!<br>Please pick a color.`);
+            .html(`Welcome, ${hostData.playerName}!`);
+          $("#welcomeInstruction")
+            .html('Please pick a color.');
 
           // object ticker on start menu:
           App.tickerObjects = document.getElementById("ticker-objects");
@@ -661,6 +661,7 @@ jQuery(
       /* *****************************
        *     UTILITY/GENERAL CODE    *
        ***************************** */
+
       onWindowResize: function() {
         App.viewportWidth = window.innerWidth;
         // TODO:
