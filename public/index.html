@@ -36,7 +36,7 @@
           <h1>Stuff</h1>
         </div>
 
-        <div class="buttons">
+        <div class="buttonsBox">
             <button id="btnCreateGame" class="btn left">CREATE</button>
             <button id="btnJoinGame" class="btn right">JOIN</button>
         </div>
@@ -45,54 +45,7 @@
     </script>
 
     <!-- This screen appears when a user clicks "CREATE" on the Title Screen -->
-    <script id="create-game-template" type="text/template">
-      <div class="createGameWrapper">
-
-          <div class="info">Open this site on your mobile device:</div>
-          <div id="gameURL" class="infoBig">Error!</div>
-
-          <div class="info">Then click <strong>JOIN</strong> and <br/> enter the following Game ID:</div>
-          <div id="spanNewGameCode" class="gameId">Error!</div>
-
-          <div id="playersWaiting"></div>
-      </div>
-    </script>
-
-    <!-- This screen appears when a player clicks "JOIN" on the Title Screen -->
-    <script id="join-game-template" type="text/template">
-      <div class="joinGameWrapper">
-          <div class="info">
-              <label class="inputPlayerName" for="inputPlayerName">name</label>
-              <input id="inputPlayerName" type="text" />
-          </div>
-
-          <div class="info">
-              <label class="inputGameId" for="inputGameId">room code</label>
-              <input id="inputGameId" type="text"/>
-          </div>
-
-          <div class="info buttons">
-              <button id="btnPlay" class="btn">play</button>
-              <div id="playerWaitingMessage"></div>
-          </div>
-      </div>
-    </script>
-
-    <!-- This is the 'Host' screen. It displays the word for each player to match -->
-    <script id="host-game-template" type="text/template">
-      <div id="wordArea">
-          <div id="hostWord">5</div>
-      </div>
-      <div id="playerScores">
-          <div id="player1Score" class="playerScore">
-              <span class="score">0</span><span class="playerName">Player 1</span>
-          </div>
-          <div id="player2Score" class="playerScore">
-              <span class="playerName">Player 2</span><span class="score">0</span>
-          </div>
-      </div>
-    </script>
-
+    <!-- it displays the start menu along with the room ID to join the game -->
     <script id="host-start-menu-template" type="text/template">
       <section id="start-menu">
         <div id="select-players">
@@ -402,6 +355,32 @@
       </section>
     </script>
 
+    <!-- This screen appears when a player clicks "JOIN" on the Title Screen -->
+    <script id="join-game-template" type="text/template">
+      <div class="joinGameWrapper">
+
+          <div class="stuff-logo">
+            <h2>All&nbsp;That</h2>
+            <h1>Stuff</h1>
+          </div>
+
+          <div class="inputBox">
+              <label class="inputPlayerName" for="inputPlayerName">name</label>
+              <input id="inputPlayerName" type="text" autocomplete="off" maxlength="12"/>
+          </div>
+
+          <div class="inputBox">
+              <label class="inputGameId" for="inputGameId">room code</label>
+              <input id="inputGameId" type="text" autocomplete="off" maxlength="4"/>
+          </div>
+
+          <div class="buttonsBox">
+            <button id="btnPlay" class="btn">play</button>
+          </div>
+          
+      </div>
+    </script>
+
     <script id="player-start-menu-template" type="text/template">
       <section id="start-menu">
         <div id="select-players">
@@ -538,7 +517,8 @@
           </div>
           <div id="start-right">
             <div id="infoBox">
-              <div id="welcomePlayer">Welcome, Anonymusbob! <br>Please pick a color.</div>
+              <div id="welcomePlayer">Welcome, Anonymusbob!</div>
+              <div id="welcomeInstruction">Please pick a color.</div>
             </div>
 
             <div id="playersWaiting"></div>
@@ -705,6 +685,11 @@
           </div>
         </div>
       </section>
+    </script>
+
+    <!-- 'Host' screen during the main game -->
+    <script id="host-game-template" type="text/template">
+      <!-- TODO -->
     </script>
 
     <!-- JavaScript Libraries -->
