@@ -25,13 +25,15 @@ jQuery(
       bindEvents: function() {
         IO.socket.on("connected", IO.onConnected);
         IO.socket.on("newGameCreated", IO.onNewGameCreated);
-        IO.socket.on("playerJoinedRoom", IO.onPlayerJoinedRoom);
         IO.socket.on("beginNewGame", IO.onBeginNewGame);
+        IO.socket.on("playerJoinedRoom", IO.onPlayerJoinedRoom);
+        IO.socket.on("errorMessage", IO.errorMessage);
+        IO.socket.on("welcome", IO.onWelcome);
         IO.socket.on("add player", IO.onAddPlayer);
+        IO.socket.on("language has been changed", App.languageHasBeenChanged);
         // IO.socket.on("newWordData", IO.onNewWordData);
         // IO.socket.on("hostCheckAnswer", IO.hostCheckAnswer);
         // IO.socket.on("gameOver", IO.gameOver);
-        IO.socket.on("errorMessage", IO.errorMessage);
       },
 
       /**
@@ -72,17 +74,73 @@ jQuery(
        * @param data
        */
       onBeginNewGame: function(data) {
-        // TODO: delete countdown here
-        // App[App.myRole].gameCountdown(data);
         App[App.myRole].displayStartMenu(data);
         console.log('begin new game...');
+      },
+
+      onWelcome: function(data) {
+        sessionStorage.setItem("mySocketId", data.socketId);
+        App.mySocketId = data.socketId;
+        console.log("Welcome to AllThatStuff!");
+
+        // set language of word cards:
+        if (App.chosenLanguage != data.chosenLanguage) {
+          App.languageHasBeenChanged(data.chosenLanguage);
+        }
+
+        // check if the game has already started:
+        App.gameStarted = data.gameStarted;
+        if (!App.gameStarted) {
+
+          // remember previously selected piece on page reload:
+          if (App.selectedPieceId && App.myPlayerName) {
+            // TODO In case of a replay, I should also check here, if the selected piece has been taken by a new player in the meantime....
+            App.Player.selectedPiece(App.selectedPieceId);
+          }
+        } else {
+          // if the game has already started:
+          if (App.selectedPieceId && App.myPlayerName) {
+            // e.g. if a joined player disconnected unintentionally and reconnects mid game..
+            // TODO: add rejoin in game.js
+            IO.socket.emit("let me rejoin the game", {
+              selectedPieceId: App.selectedPieceId,
+              playerName: App.myPlayerName,
+              myTotalPoints: App.myTotalPoints
+            });
+          } else {
+            // if the player is new player and didn't join the game before
+            setTimeout(() => {
+              window.alert("game has already started, please try again later");
+            }, 200);
+          }
+        }
+
+        App.gameMaster = data.gameMaster;
+
+        App.players = data.selectedPieces;
+        App.playerNames = data.playerNames;
+
+        // console.log('players in onWelcome(): ', App.players);
+        let players = App.players;
+        for (let i = 0; i < players.length; i++) {
+          let $piece = $("#start-menu").find("#" + players[i]);
+          let $playerName = $piece.find(".player-name");
+          $playerName[0].innerText = App.playerNames[players[i]];
+          $piece.addClass("selectedPlayerPiece");
+          App.adjustNameFontSize($piece, $playerName[0].innerText);
+
+          if (players[i] == App.gameMaster) {
+            let $crown = $piece.find(".crown");
+            $crown.removeClass("hidden");
+          }
+        }
       },
 
       onAddPlayer: function(data) {
         if (data.selectedPieceId && data.playerName) {
           // the first player who selects a piece, becomes game master:
           App.gameMaster = data.gameMaster;
-          App.selectedPieces.push(data.selectedPieceId);
+          App.players.push(data.selectedPieceId);
 
           let $piece = $("#start-menu").find("#" + data.selectedPieceId);
           $piece.addClass("selectedPlayerPiece");
@@ -97,20 +155,20 @@ jQuery(
           App.adjustNameFontSize($piece, data.playerName);
 
           // if it was me, selecting a piece:
-          if (data.selectedPieceId == App.Player.selectedPieceId) {
+          if (data.selectedPieceId == App.selectedPieceId) {
             $piece.addClass("myPiece");
 
             // if I'm the game master:
-            if (data.gameMaster == App.Player.selectedPieceId && !App.Player.iAmTheGameMaster) {
-              App.Player.iAmTheGameMaster = true;
+            if (data.gameMaster == App.selectedPieceId && !App.iAmTheGameMaster) {
+              App.iAmTheGameMaster = true;
               console.log("you are the game master");
               $("#chosen-language").addClass("game-master");
               $("#chosen-language").find(".crown").removeClass("hidden");
 
-              let $buttonBox = $("#msg-or-btn-box").find(".buttonBox");
-              let $waitingMsg = $("#msg-or-btn-box").find(".waiting-msg");
+              let $buttonBox = $("#start-right").find(".buttonBox");
+              // let $waitingMsg = $("#logo-box").find(".waiting-msg");
               $buttonBox.removeClass("hidden");
-              $waitingMsg.addClass("hidden");
+              // $waitingMsg.addClass("hidden");
             }
           }
         }
@@ -159,30 +217,53 @@ jQuery(
       // gameId, identical to the ID of the Socket.IO Room
       // used for the players and host to communicate
       gameId: "",
-
-      /**
-       * This is used to differentiate between 'Host' and 'Player' browsers.
-       */
+      // This is used to differentiate between 'Host' and 'Player' browsers:
       myRole: "", // 'Player' or 'Host'
-
       /**
        * The Socket.IO socket object identifier. This is unique for
        * each player and host. It is generated when the browser initially
        * connects to the server when the page loads for the first time.
        */
       mySocketId: "",
+      // A reference to the socket ID of the Host:
+      hostSocketId: "",
+      // The player's name entered on the 'Join' screen:
+      // myName: sessionStorage.getItem("myName"),
+      myName: "",
+      // selectedPieceId: sessionStorage.getItem("selectedPieceId"),
+      selectedPieceId: "",
+      // myTotalPoints: parseInt(sessionStorage.getItem("myTotalPoints"), 10),
+      myTotalPoints: 0,
+      myGuess: "",
 
+      players: [],
+      playerNames: {},
       gameMaster: "",
+      iAmTheGameMaster: false,
+      activePlayer: "",
+      itsMyTurn: false,
+
+      chosenLanguage: "english",
+      gameStarted: false,
+      numberOfTurns: 0,
+      /**
+       * Flag to indicate if a new game is starting.
+       * This is used after the first game ends, and players initiate a new game
+       * without refreshing the browser windows.
+       */
+      isNewGame: false,
+
+      doneBtnPressed: false,
+      everyoneGuessed: false,
+      correctAnswer: "",
+      dataForNextTurn: {},
 
       viewportWidth: window.innerWidth,
-
       // to keep the ticker in the start menu moving
       // keep track of tickerObjects.offsetLeft:
-      // tickerOffsetLeft: 0,
+      tickerOffsetLeft: 0,
       // and the animation id:
       myReq: "",
-
-      selectedPieces: [],
 
       /* *************************************
        *                Setup                *
@@ -195,7 +276,6 @@ jQuery(
         App.cacheElements();
         App.showInitScreen();
         App.bindEvents();
-
         // Initialize the fastclick library
         // FastClick.attach(document.body);
       },
@@ -237,6 +317,7 @@ jQuery(
       bindEventsStartMenu: function() {
         // Player
         $("#start-menu").on("click", ".player", App.Player.onPlayerColorClick);
+        $("#chosen-language").on("click", App.Player.onLanguageClick);
       },
 
       /* *************************************
@@ -259,24 +340,7 @@ jQuery(
         /**
          * Contains references to player data
          */
-        players: [],
-
-        /**
-         * Flag to indicate if a new game is starting.
-         * This is used after the first game ends, and players initiate a new game
-         * without refreshing the browser windows.
-         */
-        isNewGame: false,
-
-        /**
-         * Keep track of the number of players that have joined the game.
-         */
-        numPlayersInRoom: 0,
-
-        /**
-         * A reference to the correct answer for the current round.
-         */
-        currentCorrectAnswer: "",
+        connectedPlayers: [],
 
         /**
          * Handler for the "CREATE" button on the Title Screen.
@@ -345,7 +409,7 @@ jQuery(
          */
         updateWaitingScreen: function(data) {
           // If this is a restarted game, show the screen.
-          if (App.Host.isNewGame) {
+          if (App.isNewGame) {
             // App.Host.displayNewGameScreen();
             App.Host.displayStartMenu();
           }
@@ -358,7 +422,7 @@ jQuery(
           $("#playersWaiting").append(message);
 
           // Store the new player's data on the Host.
-          App.Host.players.push(data);
+          App.Host.connectedPlayers.push(data);
 
           // Increment the number of players in the room
           App.Host.numPlayersInRoom += 1;
@@ -389,19 +453,19 @@ jQuery(
         //   // Display the players' names on screen
         //   $("#player1Score")
         //     .find(".playerName")
-        //     .html(App.Host.players[0].playerName);
+        //     .html(App.Host.connectedPlayers[0].playerName);
         //
         //   $("#player2Score")
         //     .find(".playerName")
-        //     .html(App.Host.players[1].playerName);
+        //     .html(App.Host.connectedPlayers[1].playerName);
         //
         //   // Set the Score section on screen to 0 for each player.
         //   $("#player1Score")
         //     .find(".score")
-        //     .attr("id", App.Host.players[0].mySocketId);
+        //     .attr("id", App.Host.connectedPlayers[0].mySocketId);
         //   $("#player2Score")
         //     .find(".score")
-        //     .attr("id", App.Host.players[1].mySocketId);
+        //     .attr("id", App.Host.connectedPlayers[1].mySocketId);
         // },
 
         // /**
@@ -487,7 +551,7 @@ jQuery(
         //   //IO.socket.emit("clientEndGame",data);
         //   // Reset game data
         //   App.Host.numPlayersInRoom = 0;
-        //   App.Host.isNewGame = true;
+        //   App.isNewGame = true;
         //   IO.socket.emit("hostNextRound", data);
         //   // Reset game data
         // },
@@ -506,18 +570,6 @@ jQuery(
        ***************************** */
 
       Player: {
-        /**
-         * A reference to the socket ID of the Host
-         */
-        hostSocketId: "",
-
-        /**
-         * The player's name entered on the 'Join' screen.
-         */
-        myName: "",
-
-        // selectedPieceId: sessionStorage.getItem("selectedPieceId"),
-        selectedPieceId: "",
 
         // Click handler for the 'JOIN' button:
         onJoinClick: function() {
@@ -525,6 +577,13 @@ jQuery(
 
           // Display the Join Game HTML on the player's screen.
           App.$gameArea.html(App.$templateJoinGame);
+        },
+
+        onLanguageClick: function() {
+          // console.log('clicked on language');
+          if (App.iAmTheGameMaster) {
+            App.changeLanguage();
+          }
         },
 
         // /**
@@ -545,7 +604,7 @@ jQuery(
         //
         //   // Set the appropriate properties for the current player.
         //   App.myRole = "Player";
-        //   App.Player.myName = data.playerName;
+        //   App.myName = data.playerName;
         // },
 
         /**
@@ -553,7 +612,8 @@ jQuery(
          * and clicked 'play'.
          */
         onPlayerPlayClick: function() {
-          console.log('Player clicked "play"');
+          // console.log('Player clicked "play"');
+          // TODO: make a form for the inputs so that the button submits on enter?
 
           // collect data to send to the server
           let data = {
@@ -566,37 +626,39 @@ jQuery(
 
           // Set the appropriate properties for the current player.
           App.myRole = "Player";
-          App.Player.myName = data.playerName;
+          App.myName = data.playerName;
         },
 
         // Click handler for the clicking a color/player piece:
         onPlayerColorClick: function(e) {
-          console.log('Clicked a player piece!');
           // console.log('e.target: ', e.target);
           if ($(e.target).hasClass("selectedPlayerPiece")) {
             console.log("clicked element is already taken!");
           }
-          console.log('App.Player.selectedPieceId:', App.Player.selectedPieceId);
           // if you haven't yet selected a piece and it's not taken by another player:
-          if (!App.Player.selectedPieceId && !$(e.target).hasClass("selectedPlayerPiece")) {
+          if (!App.selectedPieceId && !$(e.target).hasClass("selectedPlayerPiece")) {
             let pieceId = $(e.target).attr("id");
 
             App.Player.selectedPiece(pieceId);
-            console.log('pieceId', pieceId);
+            // console.log('pieceId', pieceId);
           }
         },
 
         selectedPiece: function(pieceId) {
-          console.log('myName: ', App.Player.myName);
-          if (App.Player.myName && pieceId) {
-            App.Player.selectedPieceId = pieceId;
+          // console.log('myName: ', App.myName);
+          if (App.myName && pieceId) {
+            App.selectedPieceId = pieceId;
             sessionStorage.setItem("selectedPieceId", pieceId);
+            $('#welcomeInstruction').addClass('hidden');
 
+            // TODO: what happens, if two players pick the same piece at
+            // the same time? should be checked in the server before
+            // claiming the piece
             IO.socket.emit("selected piece", {
               gameId: App.gameId,
               socketId: App.mySocketId,
               selectedPieceId: pieceId,
-              playerName: App.Player.myName
+              playerName: App.myName
             });
           }
         },
@@ -631,7 +693,7 @@ jQuery(
         // onPlayerRestart: function() {
         //   var data = {
         //     gameId: App.gameId,
-        //     playerName: App.Player.myName
+        //     playerName: App.myName
         //   };
         //   IO.socket.emit("playerRestart", data);
         //   App.currentRound = 0;
@@ -645,11 +707,12 @@ jQuery(
         updateWaitingScreen: function(data) {
           if (IO.socket.id === data.mySocketId) {
             // if it was me who just joined the game room
-            App.Player.hostSocketId = data.mySocketId;
+            App.hostSocketId = data.mySocketId;
             App.myRole = "Player";
             App.gameId = data.gameId;
 
             App.Player.displayStartMenu(data);
+            IO.socket.emit("welcome me", App.gameId);
           }
         },
 
@@ -658,21 +721,19 @@ jQuery(
         //  * @param hostData
         //  */
         // gameCountdown: function(hostData) {
-        //   App.Player.hostSocketId = hostData.mySocketId;
+        //   App.hostSocketId = hostData.mySocketId;
         //   $("#gameArea").html('<div class="gameOver">Get Ready!</div>');
         // },
 
         // Show the player start menu screen:
-        displayStartMenu: function(hostData) {
+        displayStartMenu: function(data) {
           // Fill the game screen with the appropriate HTML
           App.$gameArea.html(App.$templatePlayerStartMenu);
           // bind events for start menu:
           App.bindEventsStartMenu();
 
-          // TODO: update selected pieces
-
           // $("#welcomePlayer")
-          //   .html(`Welcome, ${hostData.playerName}!`);
+          //   .html(`Welcome, ${data.playerName}!`);
 
           // object ticker on start menu:
           App.tickerObjects = document.getElementById("ticker-objects");
@@ -768,6 +829,31 @@ jQuery(
         }
         App.myReq = requestAnimationFrame(App.moveTickerObjects); //like setTimeout, but the waiting time is adjusted to the framerate of used hardware(?)
         App.tickerObjects.style.left = App.tickerOffsetLeft + "vw";
+      },
+
+      changeLanguage: function() {
+        // I'm the game master and I'm changing the word card language
+        let newLanguage;
+        if (App.chosenLanguage == "english") {
+          newLanguage = "german";
+        } else {
+          newLanguage = "english";
+        }
+
+        IO.socket.emit("change language", {
+          gameId: App.gameId,
+          newLanguage: newLanguage
+        });
+      },
+
+      languageHasBeenChanged: function(newLanguage) {
+        // game master changed the word card language.
+        App.chosenLanguage = newLanguage;
+        if (newLanguage == "english") {
+          $("#english-flag").removeClass("hidden");
+        } else if (newLanguage == "german") {
+          $("#english-flag").addClass("hidden");
+        }
       },
 
       /**

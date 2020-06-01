@@ -19,14 +19,15 @@ exports.initGame = function(sio, socket) {
 
   // Host Events
   gameSocket.on("hostCreateNewGame", hostCreateNewGame);
-  // gameSocket.on("hostRoomFull", hostPrepareGame);
-  // gameSocket.on("hostCountdownFinished", hostStartGame);
-  // gameSocket.on("hostNextRound", hostNextRound);
 
   // Player Events
   gameSocket.on("playerJoinsRoom", playerJoinsRoom);
+  gameSocket.on("welcome me", welcomePlayer);
   gameSocket.on("selected piece", selectedPiece);
-  // gameSocket.on("playerJoinGame", playerJoinGame);
+  gameSocket.on("change language", changeLanguage);
+
+  gameSocket.on("disconnect", onDisconnect);
+
   // gameSocket.on("playerAnswer", playerAnswer);
   // gameSocket.on("playerRestart", playerRestart);
 };
@@ -99,7 +100,6 @@ function initiateGameState(gameId) {
     buildersViewportWidth: "",
     dataForNextTurn: {}
   };
-
 }
 
 // /*
@@ -160,7 +160,7 @@ function playerJoinsRoom(data) {
   console.log('Player ' + data.playerName + ' attempting to join game room: ' + data.gameId );
 
   // A reference to the player's Socket.IO socket object
-  var sock = this;
+  let socket = this;
 
   // Look up the room ID in the Socket.IO adapter object.
   // console.log("data.gameId:", data.gameId);
@@ -170,22 +170,39 @@ function playerJoinsRoom(data) {
   // If the room exists...
   if (room) {
     // attach the socket id to the data object.
-    data.mySocketId = sock.id;
+    data.mySocketId = socket.id;
+
+    let gameId = data.gameId;
 
     // Join the room
-    sock.join(data.gameId);
-    console.log('Player ' + data.playerName + ' joining game room: ' + data.gameId );
+    socket.join(gameId);
+    console.log('Player ' + data.playerName + ' joining game room: ' + gameId );
 
     // Emit an event notifying the clients that the player has joined the room.
-    io.sockets.in(data.gameId).emit("playerJoinedRoom", data);
+    io.sockets.in(gameId).emit("playerJoinedRoom", data);
   } else {
     // Otherwise, send an error message back to the player.
-    sock.emit("errorMessage", { message: "This room does not exist." });
+    socket.emit("errorMessage", { message: "This room does not exist." });
   }
 }
 
+function welcomePlayer(gameId) {
+  // A reference to the player's Socket.IO socket object
+  let socket = this;
+  // welcome the player, giving them the list with players that joined
+  // (and selected a piece) so far:
+  socket.emit("welcome", {
+    // userId: socket.userId,
+    socketId: socket.id,
+    selectedPieces: gameStates[gameId].selectedPieces,
+    playerNames: gameStates[gameId].playerNames,
+    chosenLanguage: gameStates[gameId].chosenLanguage,
+    gameStarted: gameStates[gameId].gameStarted,
+    gameMaster: gameStates[gameId].gameMaster
+  });
+}
+
 function selectedPiece(data) {
-  console.log('selectedPiece(data) in game.js happening');
   if (data.selectedPieceId) {
     console.log(
       `${data.playerName} joined the game with the color ${data.selectedPieceId}`
@@ -206,6 +223,54 @@ function selectedPiece(data) {
       playerName: data.playerName,
       gameMaster: game.gameMaster
     });
+  }
+}
+
+function changeLanguage(data) {
+  let game = gameStates[data.gameId];
+  if (data.newLanguage == "german") {
+    game.cards = cardsDE;
+    game.chosenLanguage = "german";
+  } else if (data.newLanguage == "english") {
+    game.cards = cardsEN;
+    game.chosenLanguage = "english";
+  }
+
+  io.sockets.in(data.gameId).emit("language has been changed", data.newLanguage);
+}
+
+function onDisconnect() {
+  let socket = this;
+  console.log(`socket with the id ${socket} is now disconnected`);
+  // NOTE: for some reason, this event only fires, when the browser is refreshed; not if it just lost internet connection? --> seems to be delayed, so players will be removed after disconnecting after they actually rejoined :(
+
+  let gameId; // TODO: how to find the gameId of the disconnected socket?
+  let game = gameStates[gameId];
+  let piece = game.joinedPlayers[socket.id];
+
+  if (piece == game.gameMaster) {
+    // if disconnected player is the game master, the next joined player in rainbow order becomes game master:
+    game.gameMaster = getNextPlayer(piece);
+
+    io.sockets.in(gameId).emit("new game master", {
+      oldGameMaster: piece,
+      newGameMaster: game.gameMaster
+    });
+
+  }
+
+  game.selectedPieces = game.selectedPieces.filter(item => item !== piece);
+  if (game.selectedPieces.length == 0) {
+    game.gameStarted = false;
+  }
+  if (piece) {
+    console.log(`player piece "${piece}" is now free again`);
+
+    io.sockets.in(gameId).emit("remove selected piece", piece);
+    delete game.joinedPlayers[socket.id];
+    delete game.playerNames[piece];
+    delete game.playerPointsTotal[piece];
+
   }
 }
 
