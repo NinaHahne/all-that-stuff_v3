@@ -34,7 +34,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: 48vw;
+  min-height: 50vw;
   width: 100%;
   font-size: 1.6vw;
   font-family: "Life Savers", cursive;
@@ -260,7 +260,7 @@ input:focus {
   padding: 1vw 2vw;
 }
 
-#logo-button-box {
+#logo-box {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -269,19 +269,18 @@ input:focus {
   justify-content: center;
 }
 
-/* #logo-button-box.host {
+/* #logo-box.host {
   justify-content: center;
 } */
 
-#msg-or-btn-box {
+/* #msg-or-btn-box {
   position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
   align-items: center;
   justify-content: center;
-  /* flex-grow: 1; */
-}
+} */
 
 #start-left,
 #start-right {
@@ -573,7 +572,7 @@ input:focus {
 }
 
 .player.name12 .player-name {
-  font-size: 1vw;
+  font-size: 0.9vw;
 }
 
 #select-players .player.myPiece {
@@ -772,11 +771,11 @@ input:focus {
   animation: pulseMessage 2s infinite linear;
 }
 
-#msg-or-btn-box .waiting-msg {
+/* #msg-or-btn-box .waiting-msg {
   position: absolute;
-}
+} */
 
-/* #logo-button-box:not(.host) .waiting-msg {
+/* #logo-box:not(.host) .waiting-msg {
   position: relative;
   bottom: 15%;
 } */
