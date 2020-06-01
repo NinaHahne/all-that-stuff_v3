@@ -27,6 +27,7 @@ jQuery(
         IO.socket.on("newGameCreated", IO.onNewGameCreated);
         IO.socket.on("playerJoinedRoom", IO.onPlayerJoinedRoom);
         IO.socket.on("beginNewGame", IO.onBeginNewGame);
+        IO.socket.on("add player", IO.onAddPlayer);
         // IO.socket.on("newWordData", IO.onNewWordData);
         // IO.socket.on("hostCheckAnswer", IO.hostCheckAnswer);
         // IO.socket.on("gameOver", IO.gameOver);
@@ -77,6 +78,44 @@ jQuery(
         console.log('begin new game...');
       },
 
+      onAddPlayer: function(data) {
+        if (data.selectedPieceId && data.playerName) {
+          // the first player who selects a piece, becomes game master:
+          App.gameMaster = data.gameMaster;
+          App.selectedPieces.push(data.selectedPieceId);
+
+          let $piece = $("#start-menu").find("#" + data.selectedPieceId);
+          $piece.addClass("selectedPlayerPiece");
+
+          if (data.selectedPieceId == App.gameMaster) {
+            let $crown = $piece.find(".crown");
+            $crown.removeClass("hidden");
+          }
+
+          let $playerName = $piece.find(".player-name");
+          $playerName[0].innerText = data.playerName;
+          App.adjustNameFontSize($piece, data.playerName);
+
+          // if it was me, selecting a piece:
+          if (data.selectedPieceId == App.Player.selectedPieceId) {
+            $piece.addClass("myPiece");
+
+            // if I'm the game master:
+            if (data.gameMaster == App.Player.selectedPieceId && !App.Player.iAmTheGameMaster) {
+              App.Player.iAmTheGameMaster = true;
+              console.log("you are the game master");
+              $("#chosen-language").addClass("game-master");
+              $("#chosen-language").find(".crown").removeClass("hidden");
+
+              let $buttonBox = $("#msg-or-btn-box").find(".buttonBox");
+              let $waitingMsg = $("#msg-or-btn-box").find(".waiting-msg");
+              $buttonBox.removeClass("hidden");
+              $waitingMsg.addClass("hidden");
+            }
+          }
+        }
+      },
+
       // /**
       //  * A new set of words for the round is returned from the server.
       //  * @param data
@@ -117,11 +156,8 @@ jQuery(
     };
 
     var App = {
-      /**
-       * Keep track of the gameId, which is identical to the ID
-       * of the Socket.IO Room used for the players and host to communicate
-       *
-       */
+      // gameId, identical to the ID of the Socket.IO Room
+      // used for the players and host to communicate
       gameId: "",
 
       /**
@@ -136,11 +172,7 @@ jQuery(
        */
       mySocketId: "",
 
-      // /**
-      //  * Identifies the current round. Starts at 0 because it corresponds
-      //  * to the array of word data stored on the server.
-      //  */
-      // currentRound: 0,
+      gameMaster: "",
 
       viewportWidth: window.innerWidth,
 
@@ -149,6 +181,8 @@ jQuery(
       // tickerOffsetLeft: 0,
       // and the animation id:
       myReq: "",
+
+      selectedPieces: [],
 
       /* *************************************
        *                Setup                *
@@ -190,13 +224,19 @@ jQuery(
 
         // Player
         App.$doc.on("click", "#btnJoinGame", App.Player.onJoinClick);
-        // App.$doc.on("click", "#btnStart", App.Player.onPlayerStartClick);
         App.$doc.on("click", "#btnPlay", App.Player.onPlayerPlayClick);
+
+        // App.$doc.on("click", "#btnStart", App.Player.onPlayerStartClick);
         // App.$doc.on("click", ".btnAnswer", App.Player.onPlayerAnswerClick);
         // App.$doc.on("click", "#btnPlayerRestart", App.Player.onPlayerRestart);
 
         // Host & Players:
         $(window).on('resize', App.onWindowResize);
+      },
+
+      bindEventsStartMenu: function() {
+        // Player
+        $("#start-menu").on("click", ".player", App.Player.onPlayerColorClick);
       },
 
       /* *************************************
@@ -476,9 +516,10 @@ jQuery(
          */
         myName: "",
 
-        /**
-         * Click handler for the 'JOIN' button
-         */
+        // selectedPieceId: sessionStorage.getItem("selectedPieceId"),
+        selectedPieceId: "",
+
+        // Click handler for the 'JOIN' button:
         onJoinClick: function() {
           // console.log('Clicked "Join A Game"');
 
@@ -526,6 +567,38 @@ jQuery(
           // Set the appropriate properties for the current player.
           App.myRole = "Player";
           App.Player.myName = data.playerName;
+        },
+
+        // Click handler for the clicking a color/player piece:
+        onPlayerColorClick: function(e) {
+          console.log('Clicked a player piece!');
+          // console.log('e.target: ', e.target);
+          if ($(e.target).hasClass("selectedPlayerPiece")) {
+            console.log("clicked element is already taken!");
+          }
+          console.log('App.Player.selectedPieceId:', App.Player.selectedPieceId);
+          // if you haven't yet selected a piece and it's not taken by another player:
+          if (!App.Player.selectedPieceId && !$(e.target).hasClass("selectedPlayerPiece")) {
+            let pieceId = $(e.target).attr("id");
+
+            App.Player.selectedPiece(pieceId);
+            console.log('pieceId', pieceId);
+          }
+        },
+
+        selectedPiece: function(pieceId) {
+          console.log('myName: ', App.Player.myName);
+          if (App.Player.myName && pieceId) {
+            App.Player.selectedPieceId = pieceId;
+            sessionStorage.setItem("selectedPieceId", pieceId);
+
+            IO.socket.emit("selected piece", {
+              gameId: App.gameId,
+              socketId: App.mySocketId,
+              selectedPieceId: pieceId,
+              playerName: App.Player.myName
+            });
+          }
         },
 
         // TODO: onGameMasterStartsGame: function() {
@@ -578,8 +651,6 @@ jQuery(
 
             App.Player.displayStartMenu(data);
           }
-
-          // TODO: update selected pieces
         },
 
         // /**
@@ -595,6 +666,10 @@ jQuery(
         displayStartMenu: function(hostData) {
           // Fill the game screen with the appropriate HTML
           App.$gameArea.html(App.$templatePlayerStartMenu);
+          // bind events for start menu:
+          App.bindEventsStartMenu();
+
+          // TODO: update selected pieces
 
           // $("#welcomePlayer")
           //   .html(`Welcome, ${hostData.playerName}!`);
@@ -726,6 +801,21 @@ jQuery(
             callback();
             return;
           }
+        }
+      },
+
+      adjustNameFontSize: function($piece, name) {
+        // to adjust font-sizes for player names:
+        if (name.length <= 4) {
+          $piece.addClass("name4");
+        } else if (name.length <= 6) {
+          $piece.addClass("name6");
+        } else if (name.length <= 8) {
+          $piece.addClass("name8");
+        } else if (name.length <= 10) {
+          $piece.addClass("name10");
+        } else if (name.length <= 12) {
+          $piece.addClass("name12");
         }
       }
 
