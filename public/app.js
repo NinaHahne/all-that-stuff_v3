@@ -25,12 +25,13 @@ jQuery(
       bindEvents: function() {
         IO.socket.on("connected", IO.onConnected);
         IO.socket.on("newGameCreated", IO.onNewGameCreated);
-        IO.socket.on("beginNewGame", IO.onBeginNewGame);
+        // IO.socket.on("beginNewGame", IO.onBeginNewGame);
         IO.socket.on("playerJoinedRoom", IO.onPlayerJoinedRoom);
         IO.socket.on("errorMessage", IO.errorMessage);
         IO.socket.on("welcome", IO.onWelcome);
         IO.socket.on("add player", IO.onAddPlayer);
         IO.socket.on("language has been changed", App.languageHasBeenChanged);
+        IO.socket.on("remove selected piece", IO.onRemovePlayer);
         // IO.socket.on("newWordData", IO.onNewWordData);
         // IO.socket.on("hostCheckAnswer", IO.hostCheckAnswer);
         // IO.socket.on("gameOver", IO.gameOver);
@@ -69,14 +70,14 @@ jQuery(
         App[App.myRole].updateWaitingScreen(data);
       },
 
-      /**
-       * Both players have joined the game.
-       * @param data
-       */
-      onBeginNewGame: function(data) {
-        App[App.myRole].displayStartMenu(data);
-        console.log('begin new game...');
-      },
+      // /**
+      //  * Both players have joined the game.
+      //  * @param data
+      //  */
+      // onBeginNewGame: function(data) {
+      //   App[App.myRole].displayStartMenu(data);
+      //   console.log('begin new game...');
+      // },
 
       onWelcome: function(data) {
         sessionStorage.setItem("mySocketId", data.socketId);
@@ -153,6 +154,7 @@ jQuery(
           let $playerName = $piece.find(".player-name");
           $playerName[0].innerText = data.playerName;
           App.adjustNameFontSize($piece, data.playerName);
+          // App.doTextFit(".player-name");
 
           // if it was me, selecting a piece:
           if (data.selectedPieceId == App.selectedPieceId) {
@@ -174,28 +176,19 @@ jQuery(
         }
       },
 
-      // /**
-      //  * A new set of words for the round is returned from the server.
-      //  * @param data
-      //  */
-      // onNewWordData: function(data) {
-      //   // Update the current round
-      //   App.currentRound = data.round;
-      //
-      //   // Change the word for the Host and Player
-      //   App[App.myRole].newWord(data);
-      // },
-      //
-      // /**
-      //  * A player answered. If this is the host, check the answer.
-      //  * @param data
-      //  */
-      // hostCheckAnswer: function(data) {
-      //   if (App.myRole === "Host") {
-      //     App.Host.checkAnswer(data);
-      //   }
-      // },
-      //
+      onRemovePlayer: function(pieceId) {
+        let $piece = $("#" + pieceId);
+        // console.log('$piece: ', $piece);
+
+        $piece.removeClass("selectedPlayerPiece");
+        // this will change the font color (to white) and border style (to dashed) of the player who left.
+        // in case he was the game master and the last remaining player, delete crown for the host player screen:
+        let $crown = $piece.find(".crown");
+        $crown.addClass("hidden");
+
+        App.players = App.players.filter(item => item !== pieceId);
+      },
+
       // /**
       //  * Let everyone know the game has ended.
       //  * @param data
@@ -330,7 +323,6 @@ jQuery(
        */
       showInitScreen: function() {
         App.$gameArea.html(App.$templateIntroScreen);
-        // App.doTextFit(".title");
       },
 
       /* *******************************
@@ -565,9 +557,9 @@ jQuery(
         // }
       },
 
-      /* *****************************
-       *        PLAYER CODE          *
-       ***************************** */
+      /* *******************************
+       *         PLAYER CODE           *
+       ******************************* */
 
       Player: {
 
@@ -585,27 +577,6 @@ jQuery(
             App.changeLanguage();
           }
         },
-
-        // /**
-        //  * The player entered their name and gameId (hopefully)
-        //  * and clicked Start.
-        //  */
-        // onPlayerStartClick: function() {
-        //   // console.log('Player clicked "Start"');
-        //
-        //   // collect data to send to the server
-        //   let data = {
-        //     gameId: $("#inputGameId").val().toUpperCase(),
-        //     playerName: $("#inputPlayerName").val() || "Anonymusbob"
-        //   };
-        //
-        //   // Send the gameId and playerName to the server
-        //   IO.socket.emit("playerJoinGame", data);
-        //
-        //   // Set the appropriate properties for the current player.
-        //   App.myRole = "Player";
-        //   App.myName = data.playerName;
-        // },
 
         /**
          * The player entered their name and gameId (hopefully)
@@ -652,8 +623,7 @@ jQuery(
             $('#welcomeInstruction').addClass('hidden');
 
             // TODO: what happens, if two players pick the same piece at
-            // the same time? should be checked in the server before
-            // claiming the piece
+            // the same time? check in the server before claiming the piece
             IO.socket.emit("selected piece", {
               gameId: App.gameId,
               socketId: App.mySocketId,
@@ -664,7 +634,7 @@ jQuery(
         },
 
         // TODO: onGameMasterStartsGame: function() {
-        // Let the server know that game master started game:
+        // Let the server know that the game master started game:
         // IO.socket.emit("gameMasterStartsGame", App.gameId);
 
         // /**
@@ -716,15 +686,6 @@ jQuery(
           }
         },
 
-        // /**
-        //  * Display 'Get Ready' while the countdown timer ticks down.
-        //  * @param hostData
-        //  */
-        // gameCountdown: function(hostData) {
-        //   App.hostSocketId = hostData.mySocketId;
-        //   $("#gameArea").html('<div class="gameOver">Get Ready!</div>');
-        // },
-
         // Show the player start menu screen:
         displayStartMenu: function(data) {
           // Fill the game screen with the appropriate HTML
@@ -747,33 +708,6 @@ jQuery(
           App.moveTickerObjects();
         },
 
-        // /**
-        //  * Show the list of words for the current round.
-        //  * @param data{{round: *, word: *, answer: *, list: Array}}
-        //  */
-        // newWord: function(data) {
-        //   // Create an unordered list element
-        //   var $list = $("<ul/>").attr("id", "ulAnswers");
-        //
-        //   // Insert a list item for each word in the word list
-        //   // received from the server.
-        //   $.each(data.list, function() {
-        //     $list //  <ul> </ul>
-        //       .append(
-        //         $("<li/>") //  <ul> <li> </li> </ul>
-        //           .append(
-        //             $("<button/>") //  <ul> <li> <button> </button> </li> </ul>
-        //               .addClass("btnAnswer") //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
-        //               .addClass("btn") //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
-        //               .val(this) //  <ul> <li> <button class='btnAnswer' value='word'> </button> </li> </ul>
-        //               .html(this) //  <ul> <li> <button class='btnAnswer' value='word'>word</button> </li> </ul>
-        //           )
-        //       );
-        //   });
-        //
-        //   // Insert the list onto the screen.
-        //   $("#gameArea").html($list);
-        // },
         //
         // /**
         //  * Show the "Game Over" screen.
@@ -856,13 +790,28 @@ jQuery(
         }
       },
 
+      adjustNameFontSize: function($piece, name) {
+        // to adjust font-sizes for player names:
+        if (name.length <= 4) {
+          $piece.addClass("name4");
+        } else if (name.length <= 6) {
+          $piece.addClass("name6");
+        } else if (name.length <= 8) {
+          $piece.addClass("name8");
+        } else if (name.length <= 10) {
+          $piece.addClass("name10");
+        } else if (name.length <= 12) {
+          $piece.addClass("name12");
+        }
+      },
+
       /**
-       * Display the countdown timer on the Host screen
-       *
-       * @param $el The container element for the countdown timer
-       * @param startTime
-       * @param callback The function to call when the timer ends.
-       */
+      * Display the countdown timer on the Host screen
+      *
+      * @param $el The container element for the countdown timer
+      * @param startTime
+      * @param callback The function to call when the timer ends.
+      */
       countDown: function($el, startTime, callback) {
         // Display the starting time on the screen.
         $el.text(startTime);
@@ -889,21 +838,6 @@ jQuery(
           }
         }
       },
-
-      adjustNameFontSize: function($piece, name) {
-        // to adjust font-sizes for player names:
-        if (name.length <= 4) {
-          $piece.addClass("name4");
-        } else if (name.length <= 6) {
-          $piece.addClass("name6");
-        } else if (name.length <= 8) {
-          $piece.addClass("name8");
-        } else if (name.length <= 10) {
-          $piece.addClass("name10");
-        } else if (name.length <= 12) {
-          $piece.addClass("name12");
-        }
-      }
 
       /**
        * Make the text inside the given element as big as possible

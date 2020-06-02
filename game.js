@@ -157,7 +157,7 @@ function initiateGameState(gameId) {
  * @param data Contains data entered via player's input - playerName and gameId.
  */
 function playerJoinsRoom(data) {
-  console.log('Player ' + data.playerName + ' attempting to join game room: ' + data.gameId );
+  // console.log('Player ' + data.playerName + ' attempting to join game room: ' + data.gameId );
 
   // A reference to the player's Socket.IO socket object
   let socket = this;
@@ -209,6 +209,10 @@ function selectedPiece(data) {
     );
     let game = gameStates[data.gameId];
     game.selectedPieces.push(data.selectedPieceId);
+    // this line makes sure, that selectedPieces (piece ids of joined players)
+    // is always in rainbow order:
+    game.selectedPieces.sort(rainbowSort);
+
     game.joinedPlayers[gameSocket.id] = data.selectedPieceId;
     game.playerNames[data.selectedPieceId] = data.playerName;
 
@@ -241,36 +245,55 @@ function changeLanguage(data) {
 
 function onDisconnect() {
   let socket = this;
-  console.log(`socket with the id ${socket} is now disconnected`);
+  console.log(`socket with the id ${socket.id} is now disconnected`);
   // NOTE: for some reason, this event only fires, when the browser is refreshed; not if it just lost internet connection? --> seems to be delayed, so players will be removed after disconnecting after they actually rejoined :(
 
-  let gameId; // TODO: how to find the gameId of the disconnected socket?
-  let game = gameStates[gameId];
-  let piece = game.joinedPlayers[socket.id];
-
-  if (piece == game.gameMaster) {
-    // if disconnected player is the game master, the next joined player in rainbow order becomes game master:
-    game.gameMaster = getNextPlayer(piece);
-
-    io.sockets.in(gameId).emit("new game master", {
-      oldGameMaster: piece,
-      newGameMaster: game.gameMaster
-    });
-
+  let myGameId;
+  // to find the gameId of the disconnected socket:
+  // check every open game, if the disconnected socket was a joined player:
+  for (let gameId in gameStates) {
+    let game = gameStates[gameId];
+    // console.log(`joinedPlayers in ${gameId}:`);
+    // for (var prop in game.joinedPlayers) {
+    //   console.log(prop, game.joinedPlayers[prop]);
+    // }
+    if (game.joinedPlayers && Object.keys(game.joinedPlayers).length > 0) {
+      let socketIdsArray = Object.keys(game.joinedPlayers);
+      if (socketIdsArray.includes(socket.id)) {
+        myGameId = gameId;
+      }
+    }
   }
+  console.log(`The disconnected socket ${socket.id} has been a player in game room ${myGameId}.`);
 
-  game.selectedPieces = game.selectedPieces.filter(item => item !== piece);
-  if (game.selectedPieces.length == 0) {
-    game.gameStarted = false;
-  }
-  if (piece) {
-    console.log(`player piece "${piece}" is now free again`);
+  if (myGameId) {
+    let game = gameStates[myGameId];
+    let pieceId = game.joinedPlayers[socket.id];
 
-    io.sockets.in(gameId).emit("remove selected piece", piece);
-    delete game.joinedPlayers[socket.id];
-    delete game.playerNames[piece];
-    delete game.playerPointsTotal[piece];
+    if (pieceId == game.gameMaster) {
+      // if disconnected player is the game master, the next joined player in rainbow order becomes game master:
+      game.gameMaster = getNextPlayer(myGameId, pieceId);
 
+      io.sockets.in(myGameId).emit("new game master", {
+        oldGameMaster: pieceId,
+        newGameMaster: game.gameMaster
+      });
+    }
+
+    game.selectedPieces = game.selectedPieces.filter(item => item !== pieceId);
+    if (game.selectedPieces.length == 0) {
+      game.gameStarted = false;
+      // TODO: delete game from gameStates object
+    }
+    if (pieceId) {
+      console.log(`player piece "${pieceId}" in game ${myGameId} is now free again`);
+
+      io.sockets.in(myGameId).emit("remove selected piece", pieceId);
+      delete game.joinedPlayers[socket.id];
+      delete game.playerNames[pieceId];
+      delete game.playerPointsTotal[pieceId];
+
+    }
   }
 }
 
@@ -346,6 +369,11 @@ function onDisconnect() {
 //   return wordData;
 // }
 
+function rainbowSort(a, b) {
+  let rainbow = ['grey', 'purple', 'blue', 'green', 'yellow', 'orange', 'red', 'pink'];
+  return rainbow.indexOf(a) - rainbow.indexOf(b);
+}
+
 // Javascript implementation of Fisher-Yates shuffle algorithm:
 function shuffleArray(array) {
   //shuffles array in place
@@ -357,6 +385,24 @@ function shuffleArray(array) {
     array[j] = x;
   }
   return array;
+}
+
+function getNextPlayer(gameId, pieceId) {
+  let selectedPieces = gameStates[gameId].selectedPieces;
+  let currentPlayerIndex = selectedPieces.indexOf(pieceId);
+
+  let nextPlayer;
+  if (selectedPieces.length > 1) {
+    if (selectedPieces[currentPlayerIndex + 1]) {
+      nextPlayer = selectedPieces[currentPlayerIndex + 1];
+    } else {
+      nextPlayer = selectedPieces[0];
+    }
+  } else {
+    nextPlayer = "";
+    console.log('there is no other player left to get the next one..');
+  }
+  return nextPlayer;
 }
 
 // /**
