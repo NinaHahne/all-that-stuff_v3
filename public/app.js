@@ -102,7 +102,7 @@ jQuery(
           // if the game has already started:
           if (App.selectedPieceId && App.myPlayerName) {
             // e.g. if a joined player disconnected unintentionally and reconnects mid game..
-            // TODO: add rejoin in game.js
+            // TODO: add rejoin event in game.js
             IO.socket.emit("let me rejoin the game", {
               selectedPieceId: App.selectedPieceId,
               playerName: App.myPlayerName,
@@ -311,6 +311,12 @@ jQuery(
         // Player
         $("#start-menu").on("click", ".player", App.Player.onPlayerColorClick);
         $("#chosen-language").on("click", App.Player.onLanguageClick);
+      },
+
+      bindEventsJoinGame: function() {
+        // Player
+        $("#inputGameId").on("keydown", App.Player.onInputKeydown);
+        $("#inputPlayerName").on("keydown", App.Player.onInputKeydown);
       },
 
       /* *************************************
@@ -569,6 +575,17 @@ jQuery(
 
           // Display the Join Game HTML on the player's screen.
           App.$gameArea.html(App.$templateJoinGame);
+          App.bindEventsJoinGame();
+        },
+
+        onInputKeydown: function(e) {
+          console.log('keydown in input happened!');
+          if ((e.keyCode === 13)) {
+            // = "ENTER"
+            // App.Player.onPlayerPlayClick();
+            // e.preventDefault();
+            $('#btnPlay').click();
+          }
         },
 
         onLanguageClick: function() {
