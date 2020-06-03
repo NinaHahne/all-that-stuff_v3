@@ -129,8 +129,12 @@ button:focus {
    ****************************** */
 
 .stuff-logo {
-  padding: 1.2vw;
+  padding: 0vw 1.2vw 1.2vw;
   text-align: center;
+}
+
+.stuff-logo.host {
+  padding: 1.2vw;
 }
 
 .stuff-logo h1 {
@@ -257,6 +261,11 @@ input:focus {
   width: 100%;
   flex-grow: 1;
   justify-content: space-between;
+  padding: 1vw 2vw;
+  padding: 0vw 2vw;
+}
+
+#start-menu-middle.host {
   padding: 1vw 2vw;
 }
 
