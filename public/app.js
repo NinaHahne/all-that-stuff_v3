@@ -32,6 +32,9 @@ jQuery(
         IO.socket.on("add player", IO.onAddPlayer);
         IO.socket.on("language has been changed", App.languageHasBeenChanged);
         IO.socket.on("remove selected piece", IO.onRemovePlayer);
+        IO.socket.on("new game master", IO.onNewGameMaster);
+        IO.socket.on("game has been started", IO.onGameHasBeenStarted);
+
         // IO.socket.on("newWordData", IO.onNewWordData);
         // IO.socket.on("hostCheckAnswer", IO.hostCheckAnswer);
         // IO.socket.on("gameOver", IO.gameOver);
@@ -182,11 +185,60 @@ jQuery(
 
         $piece.removeClass("selectedPlayerPiece");
         // this will change the font color (to white) and border style (to dashed) of the player who left.
+
+        // if the game has not started yet (still in the start menu), also reset the player name to "?".
+        if (!App.gameStarted) {
+          let $playerName = $piece.find(".player-name");
+          // $playerName[0].innerText = "?";
+          $playerName.text("?");
+          $piece.removeClass("name4 name6 name8 name10 name12");
+        }
+
         // in case he was the game master and the last remaining player, delete crown for the host player screen:
         let $crown = $piece.find(".crown");
         $crown.addClass("hidden");
 
         App.players = App.players.filter(item => item !== pieceId);
+      },
+
+      onNewGameMaster: function(data) {
+        App.gameMaster = data.newGameMaster;
+        $(`#${data.oldGameMaster}`).find('.crown').addClass('hidden');
+        if (data.newGameMaster) {
+          $(`#${data.newGameMaster}`).find('.crown').removeClass('hidden');
+        }
+
+        if (!App.gameStarted) {
+          let $waitingMsg = $("#logo-box").find(".waiting-msg");
+          // if I am the new game master:
+          if (data.newGameMaster == App.selectedPieceId) {
+            App.iAmTheGameMaster = true;
+            $waitingMsg.addClass("hidden");
+            let $buttonBox = $("#start-right").find(".buttonBox");
+            $buttonBox.removeClass("hidden");
+            $("#chosen-language").addClass("game-master");
+            $('#chosen-language').find('.crown').removeClass('hidden');
+          } else {
+            // $waitingMsg.removeClass("hidden");
+            // if I was the old game master:
+            if (data.oldGameMaster == App.selectedPieceId) {
+              // no change needed because I was the one that disconnected and the page is reloading/rerendered anyway...
+            }
+          }
+        // if game started:
+        } else {
+          // if I am the new game master:
+          if (data.newGameMaster == App.selectedPieceId) {
+            App.iAmTheGameMaster = true;
+            if (App.everyoneGuessed) {
+              $("#next-btn").removeClass("hidden");
+            }
+          }
+        }
+      },
+
+      onGameHasBeenStarted: function(data) {
+        console.log('game has been started!');
       },
 
       // /**
@@ -286,8 +338,171 @@ jQuery(
         App.$templateJoinGame = $("#join-game-template").html();
         App.$templateHostStartMenu = $("#host-start-menu-template").html();
         App.$templatePlayerStartMenu = $("#player-start-menu-template").html();
+        App.$templateMainGame = $("#main-game-template").html();
         // App.$templateHostGame = $("#host-game-template").html();
 
+        // SOUNDS:
+        App.ringDropSound = new Audio("./sounds/218823__djtiii__staple-drop.wav");
+        App.universalDropSound = new Audio("./sounds/157539__nenadsimic__click.wav");
+        App.startGong = new Audio("./sounds/56240__q-k__gong-center-clear.wav");
+        App.doneGong = new Audio("./sounds/434627__dr-macak__ding.wav");
+        App.successJingle = new Audio(
+          "./sounds/270404__littlerobotsoundfactory__jingle-achievement-00.wav"
+        );
+        App.drumroll = new Audio("./sounds/12896__harri__circus-short.mp3");
+        App.bubblePop1 = new Audio("./sounds/422813__pinto0lucas__bubble-low.wav");
+        App.plop = new Audio("./sounds/431671__pellepyb__b1.ogg");
+
+        App.uniSound = true;
+        App.muted = false;
+      },
+
+      cacheElementsStartMenu: function() {
+        App.selectPlayersContainer = document.getElementById("select-players");
+        App.$startGameBtn = $("#startGame");
+
+        // object ticker on start menu:
+        App.objObj = [
+          {
+            name: "banana",
+            images: "banana.png",
+            sound: "405705__apinasaundi__found-matress-hit.wav"
+          },
+          {
+            name: "bridge",
+            images: ["bridge_v1.png", "bridge_v2.png", "bridge_v3.png"],
+            sound: "146981__jwmalahy__thud1.wav"
+          },
+          {
+            name: "cloth",
+            images: ["cloth_v1.png", "cloth_v2.png", "cloth_v3.png"],
+            sound: "128156__killpineapple__bagoffhead.mp3"
+          },
+          {
+            name: "coin",
+            images: ["coin_v1.png", "coin_v2.png"],
+            sound: "140722__j1987__metalimpact-4.wav"
+          },
+          {
+            name: "flower",
+            images: ["flower_v1.png", "flower_v2.png"],
+            sound: "240784__f4ngy__picking-flower.wav"
+          },
+          {
+            name: "fur",
+            images: "fur.png",
+            sound: "128156__killpineapple__bagoffhead.mp3"
+          },
+          {
+            name: "giant",
+            images: ["giant_v1.png", "giant_v2.png", "giant_v3.png"],
+            sound: "2516__jonnay__dropsine.wav"
+          },
+          {
+            name: "peg",
+            images: ["peg_v1.png", "peg_v2.png"],
+            sound: "61086__andre-nascimento__floppy-disk01.wav"
+          },
+          {
+            name: "pig",
+            images: ["pig_v1.png", "pig_v2.png", "pig_v3.png"],
+            sound: "442907__qubodup__pig-grunt.wav"
+          },
+          {
+            name: "plane",
+            images: ["plane_v1.png", "plane_v2.png", "plane_v3.png"],
+            sound: "61086__andre-nascimento__floppy-disk01.wav"
+          },
+          {
+            name: "pokerchip",
+            images: "pokerchip.png",
+            sound: "157539__nenadsimic__click.wav"
+          },
+          {
+            name: "pole",
+            images: "pole.png",
+            sound: "61081__andre-nascimento__pen-on-floor02.wav"
+          },
+          {
+            name: "puzzle",
+            images: ["puzzle_v1.png", "puzzle_v2.png"],
+            sound: "220018__chocktaw__fiji-meow-02.wav"
+          },
+          {
+            name: "ring",
+            images: ["ring_v1.png", "ring_v2.png"],
+            sound: "218823__djtiii__staple-drop.wav"
+          },
+          {
+            name: "rummikubtile",
+            images: "rummikubtile.png",
+            sound: "157539__nenadsimic__click.wav"
+          },
+          {
+            name: "scissors",
+            images: "scissors.png",
+            sound: "48641__ohnoimdead__onid-scissor-snap.wav"
+          },
+          {
+            name: "stone",
+            images: "stone.png",
+            sound: "146981__jwmalahy__thud1.wav"
+          },
+          {
+            name: "ticket",
+            images: "ticket.png",
+            sound: "157539__nenadsimic__click.wav"
+          },
+          {
+            name: "token",
+            images: ["token_v1.png", "token_v2.png"],
+            sound: "2516__jonnay__dropsine.wav"
+          },
+          {
+            name: "triangle",
+            images: "triangle.png",
+            sound: "157539__nenadsimic__click.wav"
+          }
+        ];
+        App.tickerObjects = document.getElementById("ticker-objects");
+        App.objectList = App.tickerObjects.getElementsByClassName("img-box");
+        // not using jQuery here because this way objectList stays in sync
+        // objectList[0] is always the first link in the list
+      },
+
+      cacheElementsMainGame: function() {
+        App.$objects = $("#objects");
+        App.$queue = $("#queue");
+        App.$joinedPlayersContainer = $("#joined-players");
+        // card deck:
+        App.cardTitle = document.getElementsByClassName("cardtitle");
+        App.items = document.getElementsByClassName("item");
+        App.$constructionArea = $("#construction-area");
+        App.$rounds = $("#rounds");
+        App.$message = $("#construction-area").find(".message");
+        App.$instructions = $("#instructions");
+
+        [App.borderTop, App.borderBottom, App.borderLeft, App.borderRight] = App.get$objBorders(
+          App.$constructionArea
+        );
+        // for moving/drag&drop objects:
+        App.objectClicked = false;
+        App.objectMoved = false;
+        App.$clickedImgBox;
+        App.$clickedImgId;
+
+        App.startX;
+        App.startY;
+        App.moveX;
+        App.moveY;
+
+        App.moveXvw;
+        App.moveYvw;
+
+        App.translateX;
+        App.translateY;
+
+        App.transformRotate = 0;
       },
 
       // bind click and event handlers:
@@ -296,8 +511,8 @@ jQuery(
         App.$doc.on("click", "#btnCreateGame", App.Host.onCreateClick);
 
         // Player
-        App.$doc.on("click", "#btnJoinGame", App.Player.onJoinClick);
-        App.$doc.on("click", "#btnPlay", App.Player.onPlayerPlayClick);
+        App.$doc.on("click", "#btnJoinAGame", App.Player.onJoinAGameClick);
+        App.$doc.on("click", "#btnJoin", App.Player.onPlayerJoinClick);
 
         // App.$doc.on("click", "#btnStart", App.Player.onPlayerStartClick);
         // App.$doc.on("click", ".btnAnswer", App.Player.onPlayerAnswerClick);
@@ -311,6 +526,7 @@ jQuery(
         // Player
         $("#start-menu").on("click", ".player", App.Player.onPlayerColorClick);
         $("#chosen-language").on("click", App.Player.onLanguageClick);
+        App.$startGameBtn.on("click", App.Player.onStartGameClick);
       },
 
       bindEventsJoinGame: function() {
@@ -384,16 +600,13 @@ jQuery(
         displayStartMenu: function() {
           // Fill the game screen with the appropriate HTML
           App.$gameArea.html(App.$templateHostStartMenu);
+          App.cacheElementsStartMenu();
+          App.preloadObjectImages();
           // Display the URL on screen
           // $("#gameURL").text(window.location.href);
           // Show the gameId / room id on screen
           $("#spanNewGameCode").text(App.gameId);
 
-          // object ticker on start menu:
-          App.tickerObjects = document.getElementById("ticker-objects");
-          App.objectList = App.tickerObjects.getElementsByClassName("img-box");
-          // not using jQuery for this because objectList stays in sync
-          // objectList[0] is always the first link in the list
           App.shuffleTickerObjects(App.tickerObjects);
           // move objects ticker:
           App.tickerOffsetLeft = (App.tickerObjects.offsetLeft * 100) / App.viewportWidth;
@@ -570,7 +783,7 @@ jQuery(
       Player: {
 
         // Click handler for the 'JOIN' button:
-        onJoinClick: function() {
+        onJoinAGameClick: function() {
           // console.log('Clicked "Join A Game"');
 
           // Display the Join Game HTML on the player's screen.
@@ -579,12 +792,12 @@ jQuery(
         },
 
         onInputKeydown: function(e) {
-          console.log('keydown in input happened!');
+          // console.log('keydown in input happened!');
           if ((e.keyCode === 13)) {
             // = "ENTER"
-            // App.Player.onPlayerPlayClick();
+            // App.Player.onPlayerJoinClick();
             // e.preventDefault();
-            $('#btnPlay').click();
+            $('#btnJoin').click();
           }
         },
 
@@ -599,9 +812,8 @@ jQuery(
          * The player entered their name and gameId (hopefully)
          * and clicked 'play'.
          */
-        onPlayerPlayClick: function() {
+        onPlayerJoinClick: function() {
           // console.log('Player clicked "play"');
-          // TODO: make a form for the inputs so that the button submits on enter?
 
           // collect data to send to the server
           let data = {
@@ -650,9 +862,25 @@ jQuery(
           }
         },
 
-        // TODO: onGameMasterStartsGame: function() {
-        // Let the server know that the game master started game:
-        // IO.socket.emit("gameMasterStartsGame", App.gameId);
+        onStartGameClick: function() {
+          // e.preventDefault();
+          if (App.gameStarted) {
+            setTimeout(() => {
+              window.alert("game has already started, please try again later");
+            }, 200);
+          } else if (!App.selectedPieceId) {
+            let msg = "please pick a color before you start the game.";
+            window.alert(msg);
+            // TODO: something prettier instead of the alert
+          } else if (App.players.length < 3) {
+            let msg =
+              "minimum number of players is 3. \nwait for more players to join the game";
+            window.alert(msg);
+            // TODO: something prettier instead of the alert
+          } else {
+            App.startGame();
+          }
+        },
 
         // /**
         //  *  Click handler for the Player hitting a word in the word list.
@@ -707,17 +935,11 @@ jQuery(
         displayStartMenu: function(data) {
           // Fill the game screen with the appropriate HTML
           App.$gameArea.html(App.$templatePlayerStartMenu);
-          // bind events for start menu:
+          // cache elements & bind events for start menu:
+          App.cacheElementsStartMenu();
           App.bindEventsStartMenu();
+          App.preloadObjectImages();
 
-          // $("#welcomePlayer")
-          //   .html(`Welcome, ${data.playerName}!`);
-
-          // object ticker on start menu:
-          App.tickerObjects = document.getElementById("ticker-objects");
-          App.objectList = App.tickerObjects.getElementsByClassName("img-box");
-          // not using jQuery here because this way objectList stays in sync
-          // objectList[0] is always the first link in the list
           App.shuffleTickerObjects(App.tickerObjects);
           // move objects ticker:
           App.tickerOffsetLeft = (App.tickerObjects.offsetLeft * 100) / App.viewportWidth;
@@ -748,14 +970,51 @@ jQuery(
 
       onWindowResize: function() {
         App.viewportWidth = window.innerWidth;
-        // TODO:
-        // [borderTop, borderBottom, borderLeft, borderRight] = get$objBorders(
-        //   $constructionArea
-        // );
-        // adjustObjectPositions(viewportWidth);
+        if (App.gameStarted) {
+          [App.borderTop, App.borderBottom, App.borderLeft, App.borderRight] = App.get$objBorders(
+            App.$constructionArea
+          );
+          // TODO:
+          // adjustObjectPositions(viewportWidth);
+        }
         // TODO: might wanna use "debounce" to limit resizing events:
         // https://stackoverflow.com/questions/9828831/jquery-on-window-resize
         // http://underscorejs.org/#debounce
+      },
+
+      get$objBorders: function($obj) {
+        let top = $obj.offset().top;
+        let bottom = top + $obj.height();
+        let left = $obj.offset().left;
+        let right = left + $obj.width();
+        return [top, bottom, left, right];
+      },
+
+      preloadObjectImages: function() {
+        const objectsArray = Array.from(App.objectList);
+        objectsArray.forEach(object => {
+          if (!$(object).hasClass("only1")) {
+            // console.log('more than one image!');
+            const img = object.querySelector("img");
+            // console.log(img.id);
+            // console.log(img.src);
+            const srcNameV = img.src.split(".png")[0];
+            const newSrcBase = srcNameV.substring(0, srcNameV.length - 1);
+            // console.log('active image version: ', srcNameV[srcNameV.length - 1]);
+            if ($(object).hasClass("more2")) {
+              let imgSrc2 = newSrcBase + 2 + ".png";
+              let newImageV2 = new Image();
+              newImageV2.src = imgSrc2;
+            } else if ($(object).hasClass("more3")) {
+              let imgSrc2 = newSrcBase + 2 + ".png";
+              let imgSrc3 = newSrcBase + 3 + ".png";
+              let newImageV2 = new Image();
+              newImageV2.src = imgSrc2;
+              let newImageV3 = new Image();
+              newImageV3.src = imgSrc3;
+            }
+          }
+        });
       },
 
       shuffleTickerObjects: function(ticker) {
@@ -820,6 +1079,50 @@ jQuery(
         } else if (name.length <= 12) {
           $piece.addClass("name12");
         }
+      },
+
+      startGame: function() {
+        // Fill the game screen with the appropriate HTML
+        App.$gameArea.html(App.$templateMainGame);
+        App.cacheElementsMainGame();
+        // to start the game with the first 10 ticker objects that are visible when clicking playButton:
+        cancelAnimationFrame(App.myReq); //stops moving ticker
+        let objArray = Array.from(App.objectList);
+
+        let activeObjects = objArray.slice(0, 10);
+        let queuedObjects = objArray.slice(10);
+        queuedObjects.reverse();
+        App.$objects.append(activeObjects);
+        App.$queue.append(queuedObjects);
+
+        let activeObjectsHTML = $("#objects")[0].innerHTML;
+        let queuedObjectsHTML = $("#queue")[0].innerHTML;
+
+        IO.socket.emit("game started", {
+          // startPlayer: selectedPieceId,
+          gameId: App.gameId,
+          activeObjects: activeObjectsHTML,
+          queuedObjects: queuedObjectsHTML
+        });
+
+        App.setObjectPositionsAbsolute();
+      },
+
+      setObjectPositionsAbsolute: function() {
+        App.$objects.children(".img-box").each(function() {
+          // position() gives position relative to positioned parent
+          let objTop = $(this).position().top;
+          let objLeft = $(this).position().left;
+          // console.log('objTop: ', objTop, 'objLeft: ', objLeft);
+          $(this).css({
+            top: objTop + "px",
+            left: objLeft + "px"
+          });
+        });
+
+        App.$objects.children(".img-box").css({
+          position: "absolute"
+        });
       },
 
       /**
