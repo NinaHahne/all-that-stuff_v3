@@ -25,6 +25,7 @@ exports.initGame = function(sio, socket) {
   gameSocket.on("welcome me", welcomePlayer);
   gameSocket.on("selected piece", selectedPiece);
   gameSocket.on("change language", changeLanguage);
+  gameSocket.on("game started", gameStarted);
 
   gameSocket.on("disconnect", onDisconnect);
 
@@ -247,6 +248,69 @@ function changeLanguage(data) {
   io.sockets.in(data.gameId).emit("language has been changed", data.newLanguage);
 }
 
+function gameStarted(data) {
+  let game = gameStates[data.gameId];
+  // game.currentPlayer = data.startPlayer;
+  game.currentPlayer = getStartPlayer(data.gameId);
+
+  // this line makes sure, that selectedPieces (joined players) is in the correct order, like the player pieces are rendered (in a beautiful rainbow order):
+  // selectedPieces = data.joinedPlayerIds;
+  game.selectedPieces.sort(rainbowSort);
+  console.log("joined players at game start: ", game.selectedPieces);
+
+  // set number of turns:
+  if (game.selectedPieces.length == 3 || game.selectedPieces.length == 5) {
+    game.numberOfTurnsLeft = 15;
+  } else if (game.selectedPieces.length == 4) {
+    game.numberOfTurnsLeft = 12;
+  } else if (game.selectedPieces.length == 6) {
+    game.numberOfTurnsLeft = 18;
+  } else if (game.selectedPieces.length == 7) {
+    game.numberOfTurnsLeft = 14;
+  } else if (game.selectedPieces.length == 8) {
+    game.numberOfTurnsLeft = 16;
+  }
+  game.numberOfTurnsForThisGame = game.numberOfTurnsLeft;
+
+  console.log(
+    `${game.selectedPieces.length} players joined the game.
+    Each player will be the builder ${game.numberOfTurnsLeft / game.selectedPieces.length} times!`
+  );
+
+  game.discardPile = game.cards;
+  // discard pile gets shuffled and builds the new stuffCards pile:
+  shuffleCards(data.gameId);
+  // drawCard(stuffCards);
+  game.firstCard = game.stuffCards.shift();
+
+  game.playerPointsTotal = {};
+  for (let i = 0; i < game.selectedPieces.length; i++) {
+    game.playerPointsTotal[game.selectedPieces[i]] = 0;
+  }
+
+  game.correctAnswer = randomNumber(1, 7);
+  game.guessedAnswers = {};
+  game.answeringOrder = [];
+  game.gameStarted = true;
+  game.doneBtnPressed = false;
+  game.guessingOrDiscussionTime = false;
+
+  let msg = `"${game.currentPlayer}" starts with building!`;
+
+  game.activeObjects = data.activeObjects;
+  game.queuedObjects = data.queuedObjects;
+
+  io.sockets.in(data.gameId).emit("game has been started", {
+    message: msg,
+    startPlayer: game.currentPlayer,
+    activeObjects: data.activeObjects,
+    queuedObjects: data.queuedObjects,
+    firstCard: game.firstCard,
+    correctAnswer: game.correctAnswer,
+    numberOfTurnsLeft: game.numberOfTurnsLeft
+  });
+}
+
 function onDisconnect() {
   let socket = this;
   console.log(`socket with the id ${socket.id} is now disconnected`);
@@ -318,6 +382,8 @@ function onDisconnect() {
         // if disconnected player is the game master, the next joined player in rainbow order becomes game master:
         game.gameMaster = getNextPlayer(myGameId, pieceId);
 
+        // TODO: add event in the app.js
+        console.log('new game master!');
         io.sockets.in(myGameId).emit("new game master", {
           oldGameMaster: pieceId,
           newGameMaster: game.gameMaster
@@ -433,6 +499,14 @@ function shuffleArray(array) {
   return array;
 }
 
+function shuffleCards(gameId) {
+  let game = gameStates[gameId];
+  let cards = game.discardPile;
+  //shuffles array in place:
+  game.stuffCards = shuffleArray(cards);
+  game.discardPile = [];
+}
+
 function getNextPlayer(gameId, pieceId) {
   let selectedPieces = gameStates[gameId].selectedPieces;
   let currentPlayerIndex = selectedPieces.indexOf(pieceId);
@@ -449,6 +523,17 @@ function getNextPlayer(gameId, pieceId) {
     console.log('there is no other player left to get the next one..');
   }
   return nextPlayer;
+}
+
+function getStartPlayer(gameId) {
+  let game = gameStates[gameId];
+  let startPlayerId = randomNumber(0, game.selectedPieces.length);
+  return game.selectedPieces[startPlayerId];
+}
+
+// Function to generate random number, min incl, max excl.
+function randomNumber(min, max) {
+  return Math.floor(Math.random() * (max - min) + min);
 }
 
 // /**
