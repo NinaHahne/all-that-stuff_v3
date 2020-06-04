@@ -37,7 +37,7 @@
 
         <div class="buttonsBox">
             <button id="btnCreateGame" class="btn left">CREATE</button>
-            <button id="btnJoinGame" class="btn right">JOIN</button>
+            <button id="btnJoinAGame" class="btn right">JOIN</button>
         </div>
 
       </div>
@@ -363,7 +363,7 @@
           </div>
 
           <div class="buttonsBox">
-            <button id="btnPlay" class="btn">play</button>
+            <button id="btnJoin" class="btn">play</button>
           </div>
 
       </div>
@@ -499,7 +499,7 @@
           <div id="start-right">
             <div class="buttonBox hidden">
                 <div>press</div>
-                <button id="play">
+                <button id="startGame">
                   <img
                   class="crown"
                   src="/images/crown.png"
@@ -678,9 +678,130 @@
       </section>
     </script>
 
-    <!-- 'Host' screen during the main game -->
-    <script id="host-game-template" type="text/template">
-      <!-- TODO -->
+    <!-- 'Host and Player' screen during the main game -->
+    <script id="main-game-template" type="text/template">
+      <section id="main-game" class="hidden">
+        <div id="main-left-center">
+          <section id="joined-players"></section>
+          <div id="card-points-construction">
+            <div id="card-points">
+              <section id="card-deck">
+                <div class="wordcard">
+                  <div class="cardtitle">Card Title</div>
+                  <div class="table-row" key="1">
+                    <div class="highlight" key="1">
+                      <div class="bullet">1.</div>
+                      <div class="item">first word</div>
+                    </div>
+                    <div class="guesses"></div>
+                  </div>
+                  <div class="table-row" key="2">
+                    <div class="highlight" key="2">
+                      <div class="bullet">2.</div>
+                      <div class="item">second word</div>
+                    </div>
+                    <div class="guesses"></div>
+                  </div>
+                  <div class="table-row" key="3">
+                    <div class="highlight" key="3">
+                      <div class="bullet">3.</div>
+                      <div class="item">third word</div>
+                    </div>
+                    <div class="guesses"></div>
+                  </div>
+                  <div class="table-row" key="4">
+                    <div class="highlight" key="4">
+                      <div class="bullet">4.</div>
+                      <div class="item">forth word</div>
+                    </div>
+                    <div class="guesses"></div>
+                  </div>
+                  <div class="table-row" key="5">
+                    <div class="highlight" key="5">
+                      <div class="bullet">5.</div>
+                      <div class="item">fifth word</div>
+                    </div>
+                    <div class="guesses"></div>
+                  </div>
+                  <div class="table-row" key="6">
+                    <div class="highlight" key="6">
+                      <div class="bullet">6.</div>
+                      <div class="item">sixth word</div>
+                    </div>
+                    <div class="guesses"></div>
+                  </div>
+                </div>
+              </section>
+              <section id="points-container">
+                <h3>points if correct:</h3>
+                <div id="points-if-correct"></div>
+              </section>
+            </div>
+
+            <section id="construction-area">
+              <div class="hidden message">...under construction...</div>
+              <div id="rounds"></div>
+              <section id="instructions" class="hidden">
+                <h3>Instructions:</h3>
+                <p>If it's your turn to build:</p>
+                <ul>
+                  <li>
+                    <strong>drag&drop</strong> objects from the right to the
+                    construction area in the middle
+                  </li>
+                  <li>
+                    <strong>double-click</strong> objects to switch perspective
+                    <small>(only for some objects)</small>
+                  </li>
+                  <li>
+                    press <span>Q</span> or <span>E</span> to
+                    <strong>rotate</strong> the last clicked object in the
+                    construction area
+                  </li>
+                  <li>
+                    click <span>done!</span> when you're
+                    <strong>finished</strong> building
+                  </li>
+                </ul>
+                <p>If you have to guess:</p>
+                <ul>
+                  <li>
+                    wait for the builder to finish and then click on a word on the
+                    left side to make your guess
+                  </li>
+                </ul>
+                <p>Sound settings:</p>
+                <ul>
+                  <li>
+                    press <span>S</span> to toggle between two
+                    <strong>sound modes</strong>
+                    <small>(universal vs. object specific)</small>
+                  </li>
+                  <li>press <span>M</span> to <strong>mute</strong> sounds</li>
+                </ul>
+              </section>
+              <button id="done-btn" class="hidden">done!</button>
+              <button id="next-btn" class="hidden">
+                <img
+                  class="crown"
+                  src="/images/crown.png"
+                  alt="crown"
+                />
+                ready for next turn?
+              </button>
+              <button id="help-btn">?</button>
+            </section>
+          </div>
+        </div>
+        <div id="main-right">
+          <section id="objects"></section>
+        </div>
+
+
+        <section id="queue"></section>
+
+        <div id="queue-overlay"></div>
+      </section>
     </script>
 
     <!-- JavaScript Libraries -->
