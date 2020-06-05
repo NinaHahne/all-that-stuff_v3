@@ -27,6 +27,18 @@ exports.initGame = function(sio, socket) {
   gameSocket.on("change language", changeLanguage);
   gameSocket.on("game started", gameStarted);
 
+  gameSocket.on("changed object image", onChangedObjectImg);
+  gameSocket.on("moving objects", onMovingObjects);
+  gameSocket.on("dropping object", onDroppingObject);
+  gameSocket.on("done building", onDoneBuilding);
+
+  gameSocket.on("made a guess", onMadeAGuess);
+  gameSocket.on("guesses backup", onGuessesBackup);
+  gameSocket.on("objects for next turn", onObjectsForNextTurn);
+
+  // ending the game pressing "O" (only in testing mode):
+  gameSocket.on("end game", endGame);
+
   gameSocket.on("disconnect", onDisconnect);
 
   // gameSocket.on("playerAnswer", playerAnswer);
@@ -149,11 +161,11 @@ function initiateGameState(gameId, hostSocketId) {
 //   }
 // }
 
-/* *****************************
- *                           *
- *     PLAYER FUNCTIONS      *
- *                           *
- ***************************** */
+/* **********************************
+ *                                  *
+ *     PLAYER EVENT FUNCTIONS       *
+ *                                  *
+ ********************************** */
 
 /**
  * A player clicked the 'play' button.
@@ -311,102 +323,167 @@ function gameStarted(data) {
   });
 }
 
-function onDisconnect() {
-  let socket = this;
-  console.log(`socket with the id ${socket.id} is now disconnected`);
-  // NOTE: for some reason, this event only fires, when the browser is refreshed; not if it just lost internet connection? --> seems to be delayed, so players will be removed after disconnecting after they actually rejoined :(
+function onChangedObjectImg(data) {
+  io.sockets.in(data.gameId).emit("object image changed", {
+    clickedImgId: data.clickedImgId,
+    newPicSrc: data.newPicSrc,
+    removeClass: data.removeClass,
+    addClass: data.addClass
+  });
+}
 
-  let myGameId;
-  // to find the gameId of the disconnected socket:
-  // check every open game, if the disconnected socket was a joined player:
-  for (let gameId in gameStates) {
-    let game = gameStates[gameId];
-    // console.log(`joinedPlayers in ${gameId}:`);
-    // for (var prop in game.joinedPlayers) {
-    //   console.log(prop, game.joinedPlayers[prop]);
-    // }
-    if (game.joinedPlayers && Object.keys(game.joinedPlayers).length > 0) {
-      let socketIdsArray = Object.keys(game.joinedPlayers);
-      if (socketIdsArray.includes(socket.id)) {
-        myGameId = gameId;
+function onMovingObjects(data) {
+  let game = gameStates[data.gameId];
+  game.activeObjects = data.activeObjects;
+  game.buildersViewportWidth = data.viewportWidth;
+
+  io.sockets.in(data.gameId).emit("objects are moving", {
+    activePlayer: data.activePlayer,
+    activeObjects: data.activeObjects,
+    buildersViewportWidth: data.viewportWidth,
+    clickedImgId: data.clickedImgId,
+    moveXvw: data.moveXvw,
+    moveYvw: data.moveYvw,
+    transformRotate: data.transformRotate
+  });
+}
+
+function onDroppingObject(data) {
+  io.sockets.in(data.gameId).emit("object dropped", {
+    activePlayer: data.activePlayer,
+    clickedImgId: data.clickedImgId,
+    selected: data.selected
+  });
+}
+
+function onDoneBuilding(data) {
+  let game = gameStates[data.gameId];
+  game.activeObjects = data.activeObjects;
+  // game.queuedObjects = data.queuedObjects;
+  let msg = `player "${data.activePlayer}" finished building! Guess what it is!`;
+  game.doneBtnPressed = true;
+  io.sockets.in(data.gameId).emit("building is done", {
+    message: msg,
+    activePlayer: data.activePlayer,
+    activeObjects: data.activeObjects,
+    buildersViewportWidth: data.buildersViewportWidth
+  });
+}
+
+function onMadeAGuess(data) {
+  let game = gameStates[data.gameId];
+  // collect guesses:
+  game.guessedAnswers[data.guessingPlayer] = data.guessedItem;
+  game.answeringOrder.push(data.guessingPlayer);
+
+  let guessedAnswersLength = Object.keys(game.guessedAnswers).length;
+  let joinedPlayersLength = game.selectedPieces.length;
+
+  io.sockets.in(data.gameId).emit("someone guessed", {
+    guessingPlayer: data.guessingPlayer,
+    guessedItem: data.guessedItem
+  });
+
+  // when everyone guessed: add points:
+  if (guessedAnswersLength == joinedPlayersLength - 1) {
+    game.everyoneGuessed = true;
+    let playerPointsIfCorrect = {};
+    let actualPlayerPoints = {};
+    let numberOfCorrectGuesses = 0;
+
+    if (joinedPlayersLength <= 6) {
+      // points for up to 6 players (5 guessers):
+      let pointsCounter = game.answeringOrder.length;
+      for (let i = 0; i < game.answeringOrder.length; i++) {
+        playerPointsIfCorrect[game.answeringOrder[i]] = pointsCounter;
+        if (game.guessedAnswers[game.answeringOrder[i]] == game.correctAnswer) {
+          actualPlayerPoints[game.answeringOrder[i]] = pointsCounter;
+          game.playerPointsTotal[game.answeringOrder[i]] += pointsCounter;
+          numberOfCorrectGuesses++;
+        } else {
+          actualPlayerPoints[game.answeringOrder[i]] = 0;
+        }
+        pointsCounter--;
+      }
+    } else if (joinedPlayersLength > 6) {
+      // for more than 6 players (max 8): (6-7 guessers):
+      // maximum points: 5
+      let pointsCounter = 0;
+      for (let i = game.answeringOrder.length; i > 0; i--) {
+        playerPointsIfCorrect[game.answeringOrder[i]] = pointsCounter;
+        if (game.guessedAnswers[game.answeringOrder[i]] == game.correctAnswer) {
+          actualPlayerPoints[game.answeringOrder[i]] = pointsCounter;
+          game.playerPointsTotal[game.answeringOrder[i]] += pointsCounter;
+          numberOfCorrectGuesses++;
+        } else {
+          actualPlayerPoints[game.answeringOrder[i]] = 0;
+        }
+        if (pointsCounter < 5) {
+          pointsCounter++;
+        }
       }
     }
+    // building player gets 1 point for each correct guess:
+    game.playerPointsTotal[game.currentPlayer] += numberOfCorrectGuesses;
+
+    game.dataForNextTurn = {
+      activePlayer: game.currentPlayer,
+      correctAnswer: game.correctAnswer,
+      guessedAnswers: game.guessedAnswers,
+      playerPointsIfCorrect: playerPointsIfCorrect,
+      actualPlayerPoints: actualPlayerPoints,
+      playerPointsTotal: game.playerPointsTotal
+    };
+
+    io.sockets.in(data.gameId).emit("everyone guessed", game.dataForNextTurn);
   }
-  // if the socket was not a joined player, they could still be the game host:
-  if (!myGameId) {
-    for (let gameId in gameStates) {
-      let game = gameStates[gameId];
-      if (game.gameHost == socket.id) {
-        myGameId = gameId;
-      }
-    }
+}
+
+function onGuessesBackup(data) {
+  let game = gameStates[data.gameId];
+  game.cardPointsHTML = data.cardPointsHTML;
+  game.guessingOrDiscussionTime = true;
+}
+
+function onObjectsForNextTurn(data) {
+  let game = gameStates[data.gameId];
+  game.joinedPlayersHTML = data.joinedPlayersHTML;
+  game.numberOfTurnsLeft--;
+  if (game.numberOfTurnsLeft == 0) {
+    endGame(data.gameId);
+  } else {
+    nextPlayersTurn(data);
   }
-  // if the disconnected socket was either a player or the game host
-  // (and not just someone entering the game room but not selecting a color
-  // and not taking part of the actual game...):
-  if (myGameId) {
-    let game = gameStates[myGameId];
-    // if the disconnected socket was the game host:
-    if (socket.id == game.gameHost) {
-      // at the current state of the game, the host screen is only informative
-      // but not necessary. the host is only required to deliver the room code
-      // and start the game.
-      // So if the host disconnects, the players can continue playing the game.
-      // but let's set the gameHost prop in the gameStates object to ""
-      // just to be able to check later, if the game still has it's host
-      game.gameHost = "";
+}
 
-      let room = gameSocket.adapter.rooms[myGameId];
-      // console.log('room:', room);
-      let socketsLeft = 0;
-      if (room) {
-        socketsLeft = room.length;
-      }
-      console.log(`The game host left the room and there are ${socketsLeft} sockets in the room left.`);
-      // if there are no players and no host left in the room,
-      // remove the game from the gameStates object:
-      if (!socketsLeft) {
-        delete gameStates[myGameId];
-      }
+function endGame(gameId) {
+  let game = gameStates[gameId];
+  // get winner:
+  let ranking = [];
+  for (let player in game.playerPointsTotal) {
+    let name = game.playerNames[player];
+    let playerPointsObj = {
+      player: player,
+      name: name,
+      points: game.playerPointsTotal[player]
+    };
+    ranking.push(playerPointsObj);
+  }
 
-      // TODO: when the game that lost it's host ends, I might wanna try this:
-      // io.sockets.in(myGameId).leave(myGameId);
-      // to delete this room
-    } else {
-      // if the disconnected socket was a player (not the host):
-      console.log(`The disconnected socket ${socket.id} has been a player in game room ${myGameId}.`);
+  // sort array in place by points, descending:
+  ranking.sort(function(a, b) {
+    return b.points - a.points;
+  });
 
-      let pieceId = game.joinedPlayers[socket.id];
+  // reset selectedPieces for next game:
+  game.selectedPieces = [];
+  game.gameStarted = false;
 
-      if (pieceId == game.gameMaster) {
-        // if disconnected player is the game master, the next joined player in rainbow order becomes game master:
-        game.gameMaster = getNextPlayer(myGameId, pieceId);
-
-        // TODO: add event in the app.js
-        console.log('new game master!');
-        io.sockets.in(myGameId).emit("new game master", {
-          oldGameMaster: pieceId,
-          newGameMaster: game.gameMaster
-        });
-      }
-
-      game.selectedPieces = game.selectedPieces.filter(item => item !== pieceId);
-      if (game.selectedPieces.length == 0) {
-        game.gameStarted = false;
-        // TODO: reset the game/the host screen to the start menu (given the host is still connected)
-      } else if (game.selectedPieces.length == 1) {
-        // TODO: end the game and tell the remaining player they win because everybody else left.
-      }
-      if (pieceId) {
-        console.log(`player piece "${pieceId}" in game ${myGameId} is now free again`);
-
-        io.sockets.in(myGameId).emit("remove selected piece", pieceId);
-        delete game.joinedPlayers[socket.id];
-        delete game.playerNames[pieceId];
-        delete game.playerPointsTotal[pieceId];
-      }
-    } // else: if the disconnected socket was a player (not the host)
-  } // if myGameId
+  console.log("game over!");
+  io.sockets.in(gameId).emit("game ends", {
+    joinedPlayersHTML: game.joinedPlayersHTML,
+    rankingArray: ranking
+  });
 }
 
 // /**
@@ -531,9 +608,154 @@ function getStartPlayer(gameId) {
   return game.selectedPieces[startPlayerId];
 }
 
+function nextPlayersTurn(data) {
+  let game = gameStates[data.gameId];
+  let nextPlayer = getNextPlayer(data.gameId, data.activePlayer);
+  game.currentPlayer = nextPlayer;
+
+  replaceCard(data.gameId);
+  game.correctAnswer = randomNumber(1, 7);
+  game.guessedAnswers = {};
+  game.answeringOrder = [];
+
+  game.activeObjects = data.activeObjects;
+  game.queuedObjects = data.queuedObjects;
+
+  game.doneBtnPressed = false;
+  game.guessingOrDiscussionTime = false;
+  game.everyoneGuessed = false;
+
+  io.sockets.in(data.gameId).emit("next turn", {
+    activePlayer: data.activePlayer,
+    nextPlayer: nextPlayer,
+    activeObjects: data.activeObjects,
+    queuedObjects: data.queuedObjects,
+    newCard: game.firstCard,
+    correctAnswer: game.correctAnswer,
+    numberOfTurnsLeft: game.numberOfTurnsLeft
+  });
+}
+
+function replaceCard(gameId) {
+  let game = gameStates[gameId];
+  // discardCard();
+  // discard current card:
+  if (game.newPile === false) {
+    game.discardPile.push(game.firstCard);
+  }
+
+  if (game.stuffCards.length > 0) {
+    game.newPile = false;
+    // drawCard(stuffCards);
+    game.firstCard = game.stuffCards.shift();
+  } else {
+    // discard pile gets shuffled and builds the new stuffCards pile:
+    shuffleCards(gameId);
+    // drawCard(stuffCards);
+    game.firstCard = game.stuffCards.shift();
+    game.newPile = true;
+  }
+}
+
 // Function to generate random number, min incl, max excl.
 function randomNumber(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
+}
+
+function onDisconnect() {
+  let socket = this;
+  console.log(`socket with the id ${socket.id} is now disconnected`);
+  // NOTE: for some reason, this event only fires, when the browser is refreshed; not if it just lost internet connection? --> seems to be delayed, so players will be removed after disconnecting after they actually rejoined :(
+
+  let myGameId;
+  // to find the gameId of the disconnected socket:
+  // check every open game, if the disconnected socket was a joined player:
+  for (let gameId in gameStates) {
+    let game = gameStates[gameId];
+    // console.log(`joinedPlayers in ${gameId}:`);
+    // for (var prop in game.joinedPlayers) {
+    //   console.log(prop, game.joinedPlayers[prop]);
+    // }
+    if (game.joinedPlayers && Object.keys(game.joinedPlayers).length > 0) {
+      let socketIdsArray = Object.keys(game.joinedPlayers);
+      if (socketIdsArray.includes(socket.id)) {
+        myGameId = gameId;
+      }
+    }
+  }
+  // if the socket was not a joined player, they could still be the game host:
+  if (!myGameId) {
+    for (let gameId in gameStates) {
+      let game = gameStates[gameId];
+      if (game.gameHost == socket.id) {
+        myGameId = gameId;
+      }
+    }
+  }
+  // if the disconnected socket was either a player or the game host
+  // (and not just someone entering the game room but not selecting a color
+  // and not taking part of the actual game...):
+  if (myGameId) {
+    let game = gameStates[myGameId];
+    // if the disconnected socket was the game host:
+    if (socket.id == game.gameHost) {
+      // at the current state of the game, the host screen is only informative
+      // but not necessary. the host is only required to deliver the room code
+      // and start the game.
+      // So if the host disconnects, the players can continue playing the game.
+      // but let's set the gameHost prop in the gameStates object to ""
+      // just to be able to check later, if the game still has it's host
+      game.gameHost = "";
+
+      let room = gameSocket.adapter.rooms[myGameId];
+      // console.log('room:', room);
+      let socketsLeft = 0;
+      if (room) {
+        socketsLeft = room.length;
+      }
+      console.log(`The game host left the room and there are ${socketsLeft} sockets in the room left.`);
+      // if there are no players and no host left in the room,
+      // remove the game from the gameStates object:
+      if (!socketsLeft) {
+        delete gameStates[myGameId];
+      }
+
+      // TODO: when the game that lost it's host ends, I might wanna try this:
+      // io.sockets.in(myGameId).leave(myGameId);
+      // to delete this room
+    } else {
+      // if the disconnected socket was a player (not the host):
+      console.log(`The disconnected socket ${socket.id} has been a player in game room ${myGameId}.`);
+
+      let pieceId = game.joinedPlayers[socket.id];
+
+      if (pieceId == game.gameMaster) {
+        // if disconnected player is the game master, the next joined player in rainbow order becomes game master:
+        game.gameMaster = getNextPlayer(myGameId, pieceId);
+
+        io.sockets.in(myGameId).emit("new game master", {
+          oldGameMaster: pieceId,
+          newGameMaster: game.gameMaster
+        });
+      }
+
+      game.selectedPieces = game.selectedPieces.filter(item => item !== pieceId);
+      if (game.selectedPieces.length == 0) {
+        game.gameStarted = false;
+        // TODO: reset the game/the host screen to the start menu (given the host is still connected)
+      } else if (game.selectedPieces.length == 1) {
+        // TODO: end the game and tell the remaining player they win because everybody else left.
+      }
+      if (pieceId) {
+        console.log(`player piece "${pieceId}" in game ${myGameId} is now free again`);
+
+        io.sockets.in(myGameId).emit("remove player", pieceId);
+        delete game.joinedPlayers[socket.id];
+        delete game.playerNames[pieceId];
+        delete game.playerPointsTotal[pieceId];
+      }
+    } // else: if the disconnected socket was a player (not the host)
+  } // if myGameId
 }
 
 // /**
