@@ -40,6 +40,7 @@ exports.initGame = function(sio, socket) {
   gameSocket.on("end game", endGame);
 
   gameSocket.on("disconnect", onDisconnect);
+  gameSocket.on("let me rejoin the game", onRejoinRequest);
 
   // gameSocket.on("playerAnswer", playerAnswer);
   // gameSocket.on("playerRestart", playerRestart);
@@ -309,6 +310,7 @@ function gameStarted(data) {
 
   let msg = `"${game.currentPlayer}" starts with building!`;
 
+  game.joinedPlayersHTML = data.joinedPlayersHTML;
   game.activeObjects = data.activeObjects;
   game.queuedObjects = data.queuedObjects;
 
@@ -756,6 +758,60 @@ function onDisconnect() {
       }
     } // else: if the disconnected socket was a player (not the host)
   } // if myGameId
+}
+
+function onRejoinRequest(data) {
+  // one player got disconnected and needs all the info back to rejoin the game.
+  let socket = this;
+  console.log('rejoining socketId:', socket.id);
+  let game = gameStates[data.gameId];
+
+  if (game && game.gameStarted) {
+    // Join the Room and wait for the players
+    socket.join(data.gameId);
+    game.selectedPieces.push(data.selectedPieceId);
+    console.log('selectedPieces after rejoining:', game.selectedPieces);
+    // NOTE: depending on the disconnection (intenet failure / page refresh) there might be double entries in the selected pieces array (because they don't get deleted on "disconnect").. so:
+    // NOTE: update: the selected piece WILL get deleted on internet disconnection, BUT: in this case it happens a long time after the same player rejoined the game already.. how do I solve this problem? the rejoining player shouldn't get deleted..
+    game.selectedPieces = [...new Set(game.selectedPieces)];
+    console.log('selectedPieces after filtering double entries:', game.selectedPieces);
+    // now the player piece order is destroyed.. so after someone disconnects/reconnets, resort in rainbow pattern:
+    game.selectedPieces.sort(rainbowSort);
+    console.log('selectedPieces after rainbowSort:', game.selectedPieces);
+
+    game.joinedPlayers[socket.id] = data.selectedPieceId;
+    game.playerNames[data.selectedPieceId] = data.playerName;
+    game.playerPointsTotal[data.selectedPieceId] = data.myTotalPoints;
+    addPlayerMidGame(data);
+  }
+}
+
+function addPlayerMidGame(data) {
+  console.log(
+    `${data.playerName} rejoined the game ${data.gameId} with the color ${data.selectedPieceId}`
+  );
+  let game = gameStates[data.gameId];
+  io.sockets.in(data.gameId).emit("add player midgame", {
+    selectedPieceId: data.selectedPieceId,
+    playerName: data.playerName,
+    gameMaster: game.gameMaster,
+    activePlayer: game.currentPlayer,
+    playerPointsTotal: game.playerPointsTotal,
+    numberOfTurnsForThisGame: game.numberOfTurnsForThisGame,
+    numberOfTurnsLeft: game.numberOfTurnsLeft,
+    firstCard: game.firstCard,
+    correctAnswer: game.correctAnswer,
+    guessedAnswers: game.guessedAnswers,
+    everyoneGuessed: game.everyoneGuessed,
+    joinedPlayersHTML: game.joinedPlayersHTML,
+    activeObjects: game.activeObjects,
+    queuedObjects: game.queuedObjects,
+    buildersViewportWidth: game.buildersViewportWidth,
+    doneBtnPressed: game.doneBtnPressed,
+    cardPointsHTML: game.cardPointsHTML,
+    guessingOrDiscussionTime: game.guessingOrDiscussionTime,
+    dataForNextTurn: game.dataForNextTurn
+  });
 }
 
 // /**

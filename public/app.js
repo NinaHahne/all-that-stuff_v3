@@ -24,6 +24,8 @@ jQuery(
        */
       bindEvents: function() {
         IO.socket.on("connected", IO.onConnected);
+        IO.socket.on("disconnect", IO.onDisconnect);
+
         IO.socket.on("newGameCreated", IO.onNewGameCreated);
         // IO.socket.on("beginNewGame", IO.onBeginNewGame);
         IO.socket.on("playerJoinedRoom", IO.onPlayerJoinedRoom);
@@ -46,6 +48,8 @@ jQuery(
         IO.socket.on("next turn", IO.onChangeTurn);
         IO.socket.on("game ends", IO.onGameEnds);
 
+        IO.socket.on("add player midgame", IO.onAddPlayerMidGame);
+
         // IO.socket.on("newWordData", IO.onNewWordData);
         // IO.socket.on("hostCheckAnswer", IO.hostCheckAnswer);
         // IO.socket.on("gameOver", IO.gameOver);
@@ -60,6 +64,30 @@ jQuery(
         App.mySocketId = IO.socket.id;
         // console.log('my socket id:', IO.socket.id);
         console.log(data.message);
+
+        // if I already joined a game previously, but got disconnected:
+        let myGameId = sessionStorage.getItem("myGameId");
+        let myPlayerName = sessionStorage.getItem("myPlayerName");
+        let mySelectedPieceId = sessionStorage.getItem("mySelectedPieceId");
+        let myTotalPoints = parseInt(sessionStorage.getItem("myTotalPoints"), 10);
+
+        if (myGameId && myPlayerName && mySelectedPieceId) {
+          // e.g. if a joined player disconnected unintentionally and reconnects mid game..
+          IO.socket.emit("let me rejoin the game", {
+            gameId: myGameId,
+            selectedPieceId: mySelectedPieceId,
+            playerName: myPlayerName,
+            myTotalPoints: myTotalPoints
+          });
+        }
+      },
+
+      onDisconnect: function() {
+        console.log("disconnected");
+        setTimeout(() => {
+          window.alert(`you got disconnected!
+            please refresh the page to rejoin the game :)`);
+        }, 300);
       },
 
       /**
@@ -105,21 +133,11 @@ jQuery(
           }
         } else {
           // if the game has already started:
-          if (App.selectedPieceId && App.myPlayerName) {
-            // e.g. if a joined player disconnected unintentionally and reconnects mid game..
-            // TODO: add rejoin event in game.js
-            IO.socket.emit("let me rejoin the game", {
-              gameId: App.gameId,
-              selectedPieceId: App.selectedPieceId,
-              playerName: App.myPlayerName,
-              myTotalPoints: App.myTotalPoints
-            });
-          } else {
-            // if the player is new player and didn't join the game before
-            setTimeout(() => {
-              window.alert("game has already started, please try again later");
-            }, 200);
-          }
+
+          setTimeout(() => {
+            window.alert("game has already started, please try again later");
+          }, 200);
+
         }
 
         App.gameMaster = data.gameMaster;
@@ -180,6 +198,136 @@ jQuery(
             }
           }
         }
+      },
+
+      onAddPlayerMidGame: function(data) {
+        // one player got disconnected and needs to be reintegrated in the game.
+        console.log(`${data.playerName} rejoined the game`);
+
+        App.players.push(data.selectedPieceId);
+
+        let mySelectedPieceId = sessionStorage.getItem("mySelectedPieceId");
+        // if I am the rejoining player:
+        if (data.selectedPieceId == mySelectedPieceId) {
+          App.selectedPieceId = mySelectedPieceId;
+          App.gameId = sessionStorage.getItem("myGameId");
+          App.myName = sessionStorage.getItem("myPlayerName");
+          App.gameStarted = true;
+
+          // Fill the game screen with the appropriate HTML
+          App.$gameArea.html(App.$templateMainGame);
+          App.cacheElementsMainGame();
+          App.bindEventsMainGame();
+          // Prevent image dragging in Firefox:
+          App.setupMutationObserver();
+          App.preventImgDragging();
+
+          App.$joinedPlayersContainer.html(data.joinedPlayersHTML);
+
+          App.gameMaster = data.gameMaster;
+          App.activePlayer = data.activePlayer;
+          App.doneBtnPressed = data.doneBtnPressed;
+          App.correctAnswer = data.correctAnswer;
+          App.everyoneGuessed = data.everyoneGuessed;
+
+          App.numberOfTurns = data.numberOfTurnsForThisGame;
+          let currentTurn = App.numberOfTurns - data.numberOfTurnsLeft + 1;
+          App.$rounds[0].innerText = `${currentTurn}/${App.numberOfTurns}`;
+
+          App.$message.removeClass("hidden");
+
+          // first word card:
+          App.cardTitle[0].innerHTML = data.firstCard.title;
+          let cardItems = data.firstCard.items;
+          for (let i = 0; i < cardItems.length; i++) {
+            App.items[i].innerHTML = cardItems[i];
+          }
+
+          // create "points if correct" boxes:
+          App.resetPointsIfCorrect();
+
+          $(`#${data.activePlayer}`).addClass("myTurn");
+          $("#construction-area").addClass(data.activePlayer);
+
+          $("#joined-players").find('.player').removeClass("myPiece");
+          let $myPiece = $("#joined-players").find("#" + App.selectedPieceId);
+          $myPiece.addClass("myPiece");
+
+          $(".player-points").removeClass("hidden");
+          // get player points:
+          App.addPoints(data);
+
+          App.$objects[0].innerHTML = data.activeObjects;
+          App.$queue[0].innerHTML = data.queuedObjects;
+
+          // adjust object positions to my viewportWidth:
+          App.adjustObjectPositions(window.innerWidth);
+          // adjust selected object positions to exactly match what the builder built so far:
+          App.adjustSelectedObjectPositions(data.activeObjects, data.buildersViewportWidth);
+          // FIXME: these adjustment steps worked in AllThatStuff_v2.
+          // here they don't.
+          // objects do adjust correctly after resizing the window though:
+          // ... but only manually. trigger window resize event doesn't work:
+          // App.onWindowResize();
+          // $(window).resize();
+          // $(window).trigger('resize');
+          window.resizeTo(window.innerWidth - 1, window.innerHeight - 1);
+
+          // $("#start-menu").addClass("hidden");
+          $("#main-game").removeClass("hidden");
+
+          if (data.activePlayer != App.selectedPieceId) {
+            // if it's not my turn:
+            App.itsMyTurn = false;
+
+            App.$message.removeClass("bold");
+            App.$message.removeClass("done");
+            App.$message.removeClass("hidden");
+            App.$message[0].innerText = "...under construction...";
+
+            $("#done-btn").addClass("hidden");
+
+            if (App.doneBtnPressed) {
+              App.$message.addClass("bold");
+              App.$message[0].innerText = `what's all that stuff?`;
+              App.$message.addClass("done");
+            }
+          } else if (data.activePlayer == App.selectedPieceId) {
+            // if it is my turn:
+            App.itsMyTurn = true;
+
+            console.log(`you drew card number ${data.firstCard.id}.`);
+            console.log(`please build item number ${data.correctAnswer}`);
+            $(`.highlight[key=${data.correctAnswer}]`).addClass(App.selectedPieceId);
+            $("#done-btn").removeClass("hidden");
+
+            App.$message.addClass("bold");
+            App.$message[0].innerText = `it's your turn!`;
+
+            if (App.doneBtnPressed) {
+              App.$message.removeClass("bold");
+              App.$message[0].innerText = `done!`;
+              App.$message.addClass("done");
+            }
+          }
+
+          if (data.guessingOrDiscussionTime) {
+            App.$message.removeClass("done");
+            App.$message.addClass("bold");
+            App.$message[0].innerText = "discussion time!";
+            App.dataForNextTurn = data.dataForNextTurn;
+            // render guesses and correct answer with "guesses backup":
+            $("#card-points")[0].innerHTML = data.cardPointsHTML;
+          }
+        }
+
+        let $piece = $("#joined-players").find("#" + data.selectedPieceId);
+        $piece.addClass("selectedPlayerPiece");
+
+        let $playerName = $piece.find(".player-name");
+        $playerName[0].innerText = data.playerName;
+
+        App.adjustNameFontSize($piece, data.playerName);
       },
 
       onRemovePlayer: function(pieceId) {
@@ -255,6 +403,12 @@ jQuery(
             App.setupMutationObserver();
             App.preventImgDragging();
 
+            let joinedPlayersList = App.selectPlayersContainer.getElementsByClassName(
+              "selectedPlayerPiece"
+            );
+            let playerArray = Array.from(joinedPlayersList);
+            App.$joinedPlayersContainer.append(playerArray);
+
             // get objects from the one who started the game (game master):
             App.$objects[0].innerHTML = data.activeObjects;
             App.$queue[0].innerHTML = data.queuedObjects;
@@ -273,12 +427,6 @@ jQuery(
           App.numberOfTurns = data.numberOfTurnsLeft;
           let currentTurn = App.numberOfTurns - data.numberOfTurnsLeft + 1;
           App.$rounds[0].innerText = `${currentTurn}/${App.numberOfTurns}`;
-
-          let joinedPlayersList = App.selectPlayersContainer.getElementsByClassName(
-            "selectedPlayerPiece"
-          );
-          let playerArray = Array.from(joinedPlayersList);
-          App.$joinedPlayersContainer.append(playerArray);
 
           App.$joinedPlayersContainer.find(".player-points").removeClass("hidden");
           App.$joinedPlayersContainer.find(".player-points").each(function() {
@@ -322,6 +470,9 @@ jQuery(
 
           // create "points if correct" boxes:
           App.resetPointsIfCorrect();
+          if (App.iAmTheGameMaster) {
+            App.backupGuesses();
+          }
 
           App.correctAnswer = data.correctAnswer;
 
@@ -352,6 +503,9 @@ jQuery(
         // create "points if correct" boxes:
         // reset from previous game:
         App.resetPointsIfCorrect();
+        if (App.iAmTheGameMaster) {
+          App.backupGuesses();
+        }
 
         App.activePlayer = data.nextPlayer;
         App.correctAnswer = data.correctAnswer;
@@ -1210,6 +1364,7 @@ jQuery(
           // Set the appropriate properties for the current player.
           App.myRole = "Player";
           App.myName = data.playerName;
+          sessionStorage.setItem("myPlayerName", data.playerName);
         },
 
         // Click handler for the clicking a color/player piece:
@@ -1231,7 +1386,7 @@ jQuery(
           // console.log('myName: ', App.myName);
           if (App.myName && pieceId) {
             App.selectedPieceId = pieceId;
-            sessionStorage.setItem("selectedPieceId", pieceId);
+            sessionStorage.setItem("mySelectedPieceId", pieceId);
             $('#welcomeInstruction').addClass('hidden');
 
             // TODO: what happens, if two players pick the same piece at
@@ -1566,6 +1721,7 @@ jQuery(
             App.hostSocketId = data.mySocketId;
             App.myRole = "Player";
             App.gameId = data.gameId;
+            sessionStorage.setItem("myGameId", data.gameId);
 
             App.Player.displayStartMenu(data);
             IO.socket.emit("welcome me", App.gameId);
@@ -1611,6 +1767,7 @@ jQuery(
        ***************************** */
 
       onWindowResize: function() {
+        // console.log('onWindowResize happening');
         App.viewportWidth = window.innerWidth;
         if (App.gameStarted) {
           [App.borderTop, App.borderBottom, App.borderLeft, App.borderRight] = App.get$objBorders(
@@ -1728,11 +1885,16 @@ jQuery(
         cancelAnimationFrame(App.myReq); //stops moving ticker
         let objArray = Array.from(App.objectList);
 
+        // save some HTML elements from the start menu for later use:
         let activeObjects = objArray.slice(0, 10);
         let queuedObjects = objArray.slice(10);
         queuedObjects.reverse();
+        let joinedPlayersList = App.selectPlayersContainer.getElementsByClassName(
+          "selectedPlayerPiece"
+        );
+        let playerArray = Array.from(joinedPlayersList);
 
-        // Fill the game screen with the appropriate HTML
+        // Fill the game screen with the main game HTML:
         App.$gameArea.html(App.$templateMainGame);
         App.cacheElementsMainGame();
         App.bindEventsMainGame();
@@ -1743,12 +1905,16 @@ jQuery(
         App.$objects.append(activeObjects);
         App.$queue.append(queuedObjects);
 
+        App.$joinedPlayersContainer.append(playerArray);
+
+        let joinedPlayersHTML = $("#joined-players")[0].innerHTML;
         let activeObjectsHTML = $("#objects")[0].innerHTML;
         let queuedObjectsHTML = $("#queue")[0].innerHTML;
 
         IO.socket.emit("game started", {
           // startPlayer: selectedPieceId,
           gameId: App.gameId,
+          joinedPlayersHTML: joinedPlayersHTML,
           activeObjects: activeObjectsHTML,
           queuedObjects: queuedObjectsHTML
         });
@@ -1774,6 +1940,7 @@ jQuery(
       },
 
       adjustObjectPositions: function(viewportWidth) {
+        // console.log('adjustObjectPositions happening');
         // safe transform values of selected objects:
         let savedTransformProps = {};
         App.$objects.find(".selected").each(function() {
@@ -1812,6 +1979,7 @@ jQuery(
       },
 
       adjustSelectedObjectPositions: function(usedObjects, buildersViewportWidth) {
+        // console.log('adjustSelectedObjectPositions happening');
         // NOTE: I can't use getTransformProps(); here because it only gets
         // the transform props of a RENDERED HTML ELEMENT.
         // but here I use an unrendered HTML element just to get the transformProps
