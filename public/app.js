@@ -231,6 +231,8 @@ jQuery(
 
           App.cacheElementsMainGame();
           App.bindEventsMainGame();
+          App.$doc.on("keydown", App.Player.onKeyDown);
+
           // Prevent image dragging in Firefox:
           App.setupMutationObserver();
           App.preventImgDragging();
@@ -1099,8 +1101,6 @@ jQuery(
         App.$doc.on("click", "#btnJoinAGame", App.Player.onJoinAGameClick);
         App.$doc.on("click", "#btnJoin", App.Player.onPlayerJoinClick);
 
-        // App.$doc.on("keydown", App.Player.onKeyDown);
-
         // App.$doc.on("click", "#btnPlayerRestart", App.Player.onPlayerRestart);
 
         // Host & Players:
@@ -1131,7 +1131,6 @@ jQuery(
           ".table-row",
           App.Player.onCardMousDown
         );
-        App.$doc.on("keydown", App.Player.onKeyDown);
 
         $("#done-btn").on("click", App.Player.onDoneBtnClick);
         $("#help-btn").on("click", App.Player.toggleHelp);
