@@ -1,7 +1,7 @@
 # AllThatStuff_v3
 Multiplayer word association game
 
-[play](http://www.allthatstuff.fun/)
+:cherry_blossom: [play](http://www.allthatstuff.fun/) :banana:
 
 ## Features
 * Game lobby: players can either host or join a game
