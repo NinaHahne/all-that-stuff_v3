@@ -4,10 +4,11 @@ Multiplayer word association game
 [play](http://www.allthatstuff.fun/)
 
 ## Features
-* Players take turns
+* Game lobby: players can either host or join a game
+* Players take turns: One player "builds" a word while the other players guess what it is
 * Select and drag&drop elements to make the other players guess a word
 * Live update of moving elements for all players
-* Game lobby: players can either host or join a game
+
 setup for game lobby inspired by
 https://github.com/InsomniacSabbir/anagrammatix
 
