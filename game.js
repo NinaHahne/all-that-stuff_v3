@@ -107,9 +107,8 @@ function initiateGameState(gameId, hostSocketId) {
     playerPointsTotal: {}, // { pieceId: <points> }
     playerNames: {},
     doneBtnPressed: false,
-    cardPointsHTML: "",
-    guessingOrDiscussionTime: false,
     everyoneGuessed: false,
+    cardPointsHTML: "",
 
     // active and queued objects:
     activeObjects: "",
@@ -306,7 +305,7 @@ function gameStarted(data) {
   game.answeringOrder = [];
   game.gameStarted = true;
   game.doneBtnPressed = false;
-  game.guessingOrDiscussionTime = false;
+  game.everyoneGuessed = false;
 
   let msg = `"${game.currentPlayer}" starts with building!`;
 
@@ -444,7 +443,6 @@ function onMadeAGuess(data) {
 function onGuessesBackup(data) {
   let game = gameStates[data.gameId];
   game.cardPointsHTML = data.cardPointsHTML;
-  game.guessingOrDiscussionTime = true;
 }
 
 function onObjectsForNextTurn(data) {
@@ -624,7 +622,6 @@ function nextPlayersTurn(data) {
   game.queuedObjects = data.queuedObjects;
 
   game.doneBtnPressed = false;
-  game.guessingOrDiscussionTime = false;
   game.everyoneGuessed = false;
 
   io.sockets.in(data.gameId).emit("next turn", {
@@ -794,9 +791,12 @@ function addPlayerMidGame(data) {
   io.sockets.in(data.gameId).emit("add player midgame", {
     selectedPieceId: data.selectedPieceId,
     playerName: data.playerName,
-    gameMaster: game.gameMaster,
-    activePlayer: game.currentPlayer,
     playerPointsTotal: game.playerPointsTotal,
+    gameMaster: game.gameMaster,
+    selectedPieces: gameStates[data.gameId].selectedPieces,
+    playerNames: gameStates[data.gameId].playerNames,
+    chosenLanguage: gameStates[data.gameId].chosenLanguage,
+    activePlayer: game.currentPlayer,
     numberOfTurnsForThisGame: game.numberOfTurnsForThisGame,
     numberOfTurnsLeft: game.numberOfTurnsLeft,
     firstCard: game.firstCard,
@@ -809,7 +809,6 @@ function addPlayerMidGame(data) {
     buildersViewportWidth: game.buildersViewportWidth,
     doneBtnPressed: game.doneBtnPressed,
     cardPointsHTML: game.cardPointsHTML,
-    guessingOrDiscussionTime: game.guessingOrDiscussionTime,
     dataForNextTurn: game.dataForNextTurn
   });
 }

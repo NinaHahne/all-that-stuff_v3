@@ -65,12 +65,15 @@ jQuery(
         // console.log('my socket id:', IO.socket.id);
         console.log(data.message);
 
-        // if I already joined a game previously, but got disconnected:
         let myGameId = sessionStorage.getItem("myGameId");
         let myPlayerName = sessionStorage.getItem("myPlayerName");
         let mySelectedPieceId = sessionStorage.getItem("mySelectedPieceId");
-        let myTotalPoints = parseInt(sessionStorage.getItem("myTotalPoints"), 10);
+        let myTotalPoints = parseInt(
+          sessionStorage.getItem("myTotalPoints"),
+          10
+        );
 
+        // if I already joined a game previously, but got disconnected:
         if (myGameId && myPlayerName && mySelectedPieceId) {
           // e.g. if a joined player disconnected unintentionally and reconnects mid game..
           IO.socket.emit("let me rejoin the game", {
@@ -80,13 +83,17 @@ jQuery(
             myTotalPoints: myTotalPoints
           });
         }
+        // TODO: if I was the host of a game before I got disconnected:
       },
 
       onDisconnect: function() {
         console.log("disconnected");
         setTimeout(() => {
-          window.alert(`you got disconnected!
-            please refresh the page to rejoin the game :)`);
+          window.alert(`
+⛔ You got disconnected!
+🔃 Please refresh the page to rejoin the game :)
+
+🖼️ ↕️ ↔️ after refreshing the page you might need to resize your window to make all the objects take the right spots`);
         }, 300);
       },
 
@@ -125,7 +132,6 @@ jQuery(
         // check if the game has already started:
         App.gameStarted = data.gameStarted;
         if (!App.gameStarted) {
-
           // remember previously selected piece on page reload:
           if (App.selectedPieceId && App.myPlayerName) {
             // TODO In case of a replay, I should also check here, if the selected piece has been taken by a new player in the meantime....
@@ -137,7 +143,6 @@ jQuery(
           setTimeout(() => {
             window.alert("game has already started, please try again later");
           }, 200);
-
         }
 
         App.gameMaster = data.gameMaster;
@@ -185,11 +190,16 @@ jQuery(
             $piece.addClass("myPiece");
 
             // if I'm the game master:
-            if (data.gameMaster == App.selectedPieceId && !App.iAmTheGameMaster) {
+            if (
+              data.gameMaster == App.selectedPieceId &&
+              !App.iAmTheGameMaster
+            ) {
               App.iAmTheGameMaster = true;
               console.log("you are the game master");
               $("#chosen-language").addClass("game-master");
-              $("#chosen-language").find(".crown").removeClass("hidden");
+              $("#chosen-language")
+                .find(".crown")
+                .removeClass("hidden");
 
               let $buttonBox = $("#start-right").find(".buttonBox");
               // let $waitingMsg = $("#logo-box").find(".waiting-msg");
@@ -202,13 +212,15 @@ jQuery(
 
       onAddPlayerMidGame: function(data) {
         // one player got disconnected and needs to be reintegrated in the game.
-        console.log(`${data.playerName} rejoined the game`);
-
-        App.players.push(data.selectedPieceId);
-
         let mySelectedPieceId = sessionStorage.getItem("mySelectedPieceId");
+
         // if I am the rejoining player:
         if (data.selectedPieceId == mySelectedPieceId) {
+          sessionStorage.setItem("mySocketId", data.socketId);
+          App.mySocketId = data.socketId;
+          App.myRole = "Player";
+          console.log("Welcome back to the game!");
+
           App.selectedPieceId = mySelectedPieceId;
           App.gameId = sessionStorage.getItem("myGameId");
           App.myName = sessionStorage.getItem("myPlayerName");
@@ -216,6 +228,7 @@ jQuery(
 
           // Fill the game screen with the appropriate HTML
           App.$gameArea.html(App.$templateMainGame);
+
           App.cacheElementsMainGame();
           App.bindEventsMainGame();
           // Prevent image dragging in Firefox:
@@ -224,11 +237,40 @@ jQuery(
 
           App.$joinedPlayersContainer.html(data.joinedPlayersHTML);
 
+          App.players = data.selectedPieces;
+          App.playerNames = data.playerNames;
           App.gameMaster = data.gameMaster;
+
           App.activePlayer = data.activePlayer;
           App.doneBtnPressed = data.doneBtnPressed;
           App.correctAnswer = data.correctAnswer;
           App.everyoneGuessed = data.everyoneGuessed;
+
+          // display the crown for the game master:
+          let players = App.players;
+          // for (let i = 0; i < players.length; i++) {
+          //   let $piece = $("#joined-players").find("#" + players[i]);
+          //   let $crown = $piece.find(".crown");
+          //   $crown.addClass("hidden");
+          //   if (players[i] == App.gameMaster) {
+          //     $crown.removeClass("hidden");
+          //   }
+          // }
+          for (let i = 0; i < players.length; i++) {
+            let $piece = $("#joined-players").find("#" + players[i]);
+            let $playerName = $piece.find(".player-name");
+            let $crown = $piece.find(".crown");
+
+            $playerName[0].innerText = App.playerNames[players[i]];
+            $piece.addClass("selectedPlayerPiece");
+            $piece.removeClass("myTurn");
+            App.adjustNameFontSize($piece, $playerName[0].innerText);
+            $crown.addClass("hidden");
+
+            if (players[i] == App.gameMaster) {
+              $crown.removeClass("hidden");
+            }
+          }
 
           App.numberOfTurns = data.numberOfTurnsForThisGame;
           let currentTurn = App.numberOfTurns - data.numberOfTurnsLeft + 1;
@@ -249,7 +291,9 @@ jQuery(
           $(`#${data.activePlayer}`).addClass("myTurn");
           $("#construction-area").addClass(data.activePlayer);
 
-          $("#joined-players").find('.player').removeClass("myPiece");
+          $("#joined-players")
+            .find(".player")
+            .removeClass("myPiece");
           let $myPiece = $("#joined-players").find("#" + App.selectedPieceId);
           $myPiece.addClass("myPiece");
 
@@ -263,7 +307,11 @@ jQuery(
           // adjust object positions to my viewportWidth:
           App.adjustObjectPositions(window.innerWidth);
           // adjust selected object positions to exactly match what the builder built so far:
-          App.adjustSelectedObjectPositions(data.activeObjects, data.buildersViewportWidth);
+          App.adjustSelectedObjectPositions(
+            data.activeObjects,
+            data.buildersViewportWidth
+          );
+
           // FIXME: these adjustment steps worked in AllThatStuff_v2.
           // here they don't.
           // objects do adjust correctly after resizing the window though:
@@ -271,7 +319,7 @@ jQuery(
           // App.onWindowResize();
           // $(window).resize();
           // $(window).trigger('resize');
-          window.resizeTo(window.innerWidth - 1, window.innerHeight - 1);
+          // window.resizeTo(window.innerWidth - 1, window.innerHeight - 1);
 
           // $("#start-menu").addClass("hidden");
           $("#main-game").removeClass("hidden");
@@ -281,16 +329,22 @@ jQuery(
             App.itsMyTurn = false;
 
             App.$message.removeClass("bold");
-            App.$message.removeClass("done");
             App.$message.removeClass("hidden");
             App.$message[0].innerText = "...under construction...";
+            App.$message.removeClass("no-animation");
 
             $("#done-btn").addClass("hidden");
 
             if (App.doneBtnPressed) {
               App.$message.addClass("bold");
               App.$message[0].innerText = `what's all that stuff?`;
-              App.$message.addClass("done");
+              App.$message.addClass("no-animation");
+            }
+
+            if (App.everyoneGuessed) {
+              App.$message.removeClass("no-animation");
+              App.$message.addClass("bold");
+              App.$message[0].innerText = "discussion time!";
             }
           } else if (data.activePlayer == App.selectedPieceId) {
             // if it is my turn:
@@ -298,7 +352,9 @@ jQuery(
 
             console.log(`you drew card number ${data.firstCard.id}.`);
             console.log(`please build item number ${data.correctAnswer}`);
-            $(`.highlight[key=${data.correctAnswer}]`).addClass(App.selectedPieceId);
+            $(`.highlight[key=${data.correctAnswer}]`).addClass(
+              App.selectedPieceId
+            );
             $("#done-btn").removeClass("hidden");
 
             App.$message.addClass("bold");
@@ -307,18 +363,43 @@ jQuery(
             if (App.doneBtnPressed) {
               App.$message.removeClass("bold");
               App.$message[0].innerText = `done!`;
-              App.$message.addClass("done");
+              App.$message.addClass("no-animation");
+            }
+
+            if (App.everyoneGuessed) {
+              App.$message.removeClass("no-animation");
+              App.$message.addClass("bold");
+              App.$message[0].innerText = "discussion time!";
+              $("#done-btn").addClass("hidden");
             }
           }
 
-          if (data.guessingOrDiscussionTime) {
-            App.$message.removeClass("done");
-            App.$message.addClass("bold");
-            App.$message[0].innerText = "discussion time!";
+          if (App.doneBtnPressed || App.everyoneGuessed) {
             App.dataForNextTurn = data.dataForNextTurn;
             // render guesses and correct answer with "guesses backup":
             $("#card-points")[0].innerHTML = data.cardPointsHTML;
+
+            if (!App.itsMyTurn) {
+              $(".highlight").removeClass(
+                "grey purple blue green yellow orange red pink"
+              );
+              if (App.everyoneGuessed) {
+                // display the correct answer:
+                $(`.highlight[key=${data.correctAnswer}]`).addClass(
+                  App.activePlayer
+                );
+              } else {
+                // don't show the correct answer highlighted:
+                // $(`.highlight[key=${App.correctAnswer}]`).removeClass(
+                //   "grey purple blue green yellow orange red pink"
+                // );
+              }
+            }
           }
+        } else {
+          // if I'm not the rejoining player:
+          console.log(`${data.playerName} rejoined the game`);
+          App.players.push(data.selectedPieceId);
         }
 
         let $piece = $("#joined-players").find("#" + data.selectedPieceId);
@@ -354,9 +435,13 @@ jQuery(
 
       onNewGameMaster: function(data) {
         App.gameMaster = data.newGameMaster;
-        $(`#${data.oldGameMaster}`).find('.crown').addClass('hidden');
+        $(`#${data.oldGameMaster}`)
+          .find(".crown")
+          .addClass("hidden");
         if (data.newGameMaster) {
-          $(`#${data.newGameMaster}`).find('.crown').removeClass('hidden');
+          $(`#${data.newGameMaster}`)
+            .find(".crown")
+            .removeClass("hidden");
         }
 
         if (!App.gameStarted) {
@@ -368,7 +453,9 @@ jQuery(
             let $buttonBox = $("#start-right").find(".buttonBox");
             $buttonBox.removeClass("hidden");
             $("#chosen-language").addClass("game-master");
-            $('#chosen-language').find('.crown').removeClass('hidden');
+            $("#chosen-language")
+              .find(".crown")
+              .removeClass("hidden");
           } else {
             // $waitingMsg.removeClass("hidden");
             // if I was the old game master:
@@ -376,7 +463,7 @@ jQuery(
               // no change needed because I was the one that disconnected and the page is reloading/rerendered anyway...
             }
           }
-        // if game started:
+          // if game started:
         } else {
           // if I am the new game master:
           if (data.newGameMaster == App.selectedPieceId) {
@@ -391,7 +478,7 @@ jQuery(
       onGameHasBeenStarted: function(data) {
         console.log(data.message);
         // only if player joined (& in case of a second game, if player pressed "play again"):
-        if ((App.selectedPieceId || App.myRole == 'Host') && !App.gameStarted) {
+        if ((App.selectedPieceId || App.myRole == "Host") && !App.gameStarted) {
           // if I did not start the game:
           if (!App.iAmTheGameMaster) {
             cancelAnimationFrame(App.myReq);
@@ -414,9 +501,11 @@ jQuery(
             App.$queue[0].innerHTML = data.queuedObjects;
             App.setObjectPositionsAbsolute();
           }
-          App.doneBtnPressed = false;
 
-          $("#start-menu").addClass("hidden");
+          App.doneBtnPressed = false;
+          App.everyoneGuessed = false;
+
+          // $("#start-menu").addClass("hidden");
           $("#main-game").removeClass("hidden");
 
           $(`#${data.startPlayer}`).addClass("myTurn");
@@ -428,7 +517,9 @@ jQuery(
           let currentTurn = App.numberOfTurns - data.numberOfTurnsLeft + 1;
           App.$rounds[0].innerText = `${currentTurn}/${App.numberOfTurns}`;
 
-          App.$joinedPlayersContainer.find(".player-points").removeClass("hidden");
+          App.$joinedPlayersContainer
+            .find(".player-points")
+            .removeClass("hidden");
           App.$joinedPlayersContainer.find(".player-points").each(function() {
             $(this)[0].innerText = "0";
           });
@@ -440,7 +531,7 @@ jQuery(
             App.itsMyTurn = false;
 
             App.$message.removeClass("bold");
-            App.$message.removeClass("done");
+            App.$message.removeClass("no-animation");
             App.$message[0].innerText = "...under construction...";
 
             $("#done-btn").addClass("hidden");
@@ -449,7 +540,9 @@ jQuery(
 
             console.log(`you drew card number ${data.firstCard.id}.`);
             console.log(`please build item number ${data.correctAnswer}`);
-            $(`.highlight[key=${data.correctAnswer}]`).addClass(App.selectedPieceId);
+            $(`.highlight[key=${data.correctAnswer}]`).addClass(
+              App.selectedPieceId
+            );
 
             App.$message.addClass("bold");
             App.$message[0].innerText = `it's your turn!`;
@@ -470,9 +563,7 @@ jQuery(
 
           // create "points if correct" boxes:
           App.resetPointsIfCorrect();
-          if (App.iAmTheGameMaster) {
-            App.backupGuesses();
-          }
+          App.backupGuesses();
 
           App.correctAnswer = data.correctAnswer;
 
@@ -493,6 +584,12 @@ jQuery(
         $("#construction-area").addClass(data.nextPlayer);
 
         $(`.highlight[key=${App.correctAnswer}]`).removeClass(App.activePlayer);
+        // in case someone got disconnected/reconnecetd and got the
+        // backup word card in the previous turn:
+        // remove all possible color classes from all word card items:
+        $(`.highlight`).removeClass(
+          "grey purple blue green yellow orange red pink"
+        );
 
         // reset guess markers:
         let $guessesBoxesList = $(`.table-row`).find(".guesses");
@@ -503,9 +600,7 @@ jQuery(
         // create "points if correct" boxes:
         // reset from previous game:
         App.resetPointsIfCorrect();
-        if (App.iAmTheGameMaster) {
-          App.backupGuesses();
-        }
+        App.backupGuesses();
 
         App.activePlayer = data.nextPlayer;
         App.correctAnswer = data.correctAnswer;
@@ -529,7 +624,7 @@ jQuery(
         }
 
         App.$message.removeClass("hidden");
-        App.$message.removeClass("done");
+        App.$message.removeClass("no-animation");
         $("#next-btn").addClass("hidden");
 
         // update number of turns left:
@@ -540,7 +635,9 @@ jQuery(
         if (data.nextPlayer == App.selectedPieceId) {
           console.log(`you drew card number ${data.newCard.id}.`);
           console.log(`please build item number ${data.correctAnswer}`);
-          $(`.highlight[key=${data.correctAnswer}]`).addClass(App.selectedPieceId);
+          $(`.highlight[key=${data.correctAnswer}]`).addClass(
+            App.selectedPieceId
+          );
           $("#done-btn").removeClass("hidden");
           App.$message[0].innerText = `it's your turn!`;
           App.$message.addClass("bold");
@@ -562,7 +659,9 @@ jQuery(
         // other player moves an object.
         if (!App.itsMyTurn) {
           // $objects[0].innerHTML = data.activeObjects;
-          let $movedObject = $('#objects').find(`.img-box.${data.clickedImgId}`);
+          let $movedObject = $("#objects").find(
+            `.img-box.${data.clickedImgId}`
+          );
 
           // move or rotate object:
           $movedObject.css({
@@ -577,7 +676,9 @@ jQuery(
       onObjectIsDropped: function(data) {
         // other player drops object.
         if (!App.itsMyTurn) {
-          let $droppedObject = $('#objects').find(`.img-box.${data.clickedImgId}`);
+          let $droppedObject = $("#objects").find(
+            `.img-box.${data.clickedImgId}`
+          );
 
           if (data.selected) {
             // bring recently dropped objects to the front:
@@ -617,13 +718,15 @@ jQuery(
           App.$message[0].innerText = `what's all that stuff?`;
 
           // In case I resized my window during the building, the position of objects in the construction area could be a bit off on my screen. so to make sure, I see exactly what the builder built (at least at the moment when they click "done"), get coordinates of selected objects again:
-          App.adjustSelectedObjectPositions(data.activeObjects, data.buildersViewportWidth);
-
+          App.adjustSelectedObjectPositions(
+            data.activeObjects,
+            data.buildersViewportWidth
+          );
         } else if (App.itsMyTurn) {
           App.$message.removeClass("bold");
           App.$message[0].innerText = `done!`;
         }
-        App.$message.addClass("done");
+        App.$message.addClass("no-animation");
         App.doneBtnPressed = true;
       },
 
@@ -662,10 +765,9 @@ jQuery(
                 if (App.itsMyTurn) {
                   $("#done-btn").addClass("hidden");
                 }
-                App.$message.removeClass("done");
+                App.$message.removeClass("no-animation");
                 App.$message.addClass("bold");
                 App.$message[0].innerText = "discussion time!";
-
               }, 1000); // time before change to next turn / next-button shows up
             }, 1500); // time before addPoints
           }, 1500); // time before showCorrectAnswer
@@ -700,7 +802,10 @@ jQuery(
           // }
 
           $playersEnd[0].innerHTML = data.joinedPlayersHTML;
-          $playersEnd.find(`#${App.gameMaster}`).find('.crown').addClass('hidden');
+          $playersEnd
+            .find(`#${App.gameMaster}`)
+            .find(".crown")
+            .addClass("hidden");
 
           setTimeout(() => {
             App.rankingAnimations(ranking);
@@ -811,15 +916,21 @@ jQuery(
         // App.$templateHostGame = $("#host-game-template").html();
 
         // SOUNDS:
-        App.ringDropSound = new Audio("./sounds/218823__djtiii__staple-drop.wav");
-        App.universalDropSound = new Audio("./sounds/157539__nenadsimic__click.wav");
+        App.ringDropSound = new Audio(
+          "./sounds/218823__djtiii__staple-drop.wav"
+        );
+        App.universalDropSound = new Audio(
+          "./sounds/157539__nenadsimic__click.wav"
+        );
         App.startGong = new Audio("./sounds/56240__q-k__gong-center-clear.wav");
         App.doneGong = new Audio("./sounds/434627__dr-macak__ding.wav");
         App.successJingle = new Audio(
           "./sounds/270404__littlerobotsoundfactory__jingle-achievement-00.wav"
         );
         App.drumroll = new Audio("./sounds/12896__harri__circus-short.mp3");
-        App.bubblePop1 = new Audio("./sounds/422813__pinto0lucas__bubble-low.wav");
+        App.bubblePop1 = new Audio(
+          "./sounds/422813__pinto0lucas__bubble-low.wav"
+        );
         App.plop = new Audio("./sounds/431671__pellepyb__b1.ogg");
 
         App.uniSound = true;
@@ -953,9 +1064,12 @@ jQuery(
         App.$message = $("#construction-area").find(".message");
         App.$instructions = $("#instructions");
 
-        [App.borderTop, App.borderBottom, App.borderLeft, App.borderRight] = App.get$objBorders(
-          App.$constructionArea
-        );
+        [
+          App.borderTop,
+          App.borderBottom,
+          App.borderLeft,
+          App.borderRight
+        ] = App.get$objBorders(App.$constructionArea);
         // for moving/drag&drop objects:
         App.objectClicked = false;
         App.objectMoved = false;
@@ -985,12 +1099,12 @@ jQuery(
         App.$doc.on("click", "#btnJoinAGame", App.Player.onJoinAGameClick);
         App.$doc.on("click", "#btnJoin", App.Player.onPlayerJoinClick);
 
-        // App.$doc.on("click", "#btnStart", App.Player.onPlayerStartClick);
-        // App.$doc.on("click", ".btnAnswer", App.Player.onPlayerAnswerClick);
+        // App.$doc.on("keydown", App.Player.onKeyDown);
+
         // App.$doc.on("click", "#btnPlayerRestart", App.Player.onPlayerRestart);
 
         // Host & Players:
-        $(window).on('resize', App.onWindowResize);
+        $(window).on("resize", App.onWindowResize);
       },
 
       bindEventsStartMenu: function() {
@@ -1012,7 +1126,12 @@ jQuery(
         App.$doc.on("mouseup", App.Player.onMouseUp);
         // App.$doc.on("keydown", App.Player.onKeyDown);
         App.$doc.on("dblclick", ".img-box", App.Player.onDblClick);
-        $("#card-points").on("mousedown", ".table-row", App.Player.onCardMousDown);
+        $("#card-points").on(
+          "mousedown",
+          ".table-row",
+          App.Player.onCardMousDown
+        );
+        App.$doc.on("keydown", App.Player.onKeyDown);
 
         $("#done-btn").on("click", App.Player.onDoneBtnClick);
         $("#help-btn").on("click", App.Player.toggleHelp);
@@ -1146,7 +1265,8 @@ jQuery(
 
           App.shuffleTickerObjects(App.tickerObjects);
           // move objects ticker:
-          App.tickerOffsetLeft = (App.tickerObjects.offsetLeft * 100) / App.viewportWidth;
+          App.tickerOffsetLeft =
+            (App.tickerObjects.offsetLeft * 100) / App.viewportWidth;
           // => number (in px), x-position of element relative to its parent
           App.moveTickerObjects();
         },
@@ -1318,7 +1438,6 @@ jQuery(
        ******************************* */
 
       Player: {
-
         // Click handler for the 'JOIN' button:
         onJoinAGameClick: function() {
           // console.log('Clicked "Join A Game"');
@@ -1330,11 +1449,11 @@ jQuery(
 
         onInputKeydown: function(e) {
           // console.log('keydown in input happened!');
-          if ((e.keyCode === 13)) {
+          if (e.keyCode === 13) {
             // = "ENTER"
             // App.Player.onPlayerJoinClick();
             // e.preventDefault();
-            $('#btnJoin').click();
+            $("#btnJoin").click();
           }
         },
 
@@ -1354,7 +1473,9 @@ jQuery(
 
           // collect data to send to the server
           let data = {
-            gameId: $("#inputGameId").val().toUpperCase(),
+            gameId: $("#inputGameId")
+              .val()
+              .toUpperCase(),
             playerName: $("#inputPlayerName").val() || "Anonymusbob"
           };
 
@@ -1374,7 +1495,10 @@ jQuery(
             console.log("clicked element is already taken!");
           }
           // if you haven't yet selected a piece and it's not taken by another player:
-          if (!App.selectedPieceId && !$(e.target).hasClass("selectedPlayerPiece")) {
+          if (
+            !App.selectedPieceId &&
+            !$(e.target).hasClass("selectedPlayerPiece")
+          ) {
             let pieceId = $(e.target).attr("id");
 
             App.Player.selectedPiece(pieceId);
@@ -1387,7 +1511,7 @@ jQuery(
           if (App.myName && pieceId) {
             App.selectedPieceId = pieceId;
             sessionStorage.setItem("mySelectedPieceId", pieceId);
-            $('#welcomeInstruction').addClass('hidden');
+            $("#welcomeInstruction").addClass("hidden");
 
             // TODO: what happens, if two players pick the same piece at
             // the same time? check in the server before claiming the piece
@@ -1448,8 +1572,11 @@ jQuery(
 
             // to move an object, that's already in the construction area, check the transform props and calculate with them when invoking updatePosition():
             if (App.$clickedImgBox.hasClass("selected")) {
-
-              [App.translateX, App.translateY, App.transformRotate] = App.getTransformProps(App.$clickedImgBox);
+              [
+                App.translateX,
+                App.translateY,
+                App.transformRotate
+              ] = App.getTransformProps(App.$clickedImgBox);
               // set move props of clicked object to current values, in case it will be moved or rotated later:
               App.moveX = App.translateX;
               App.moveY = App.translateY;
@@ -1483,7 +1610,9 @@ jQuery(
               if (App.uniSound) {
                 App.universalDropSound.play();
               } else {
-                const currentObj = App.objObj.find(obj => obj.name === App.$clickedImgId);
+                const currentObj = App.objObj.find(
+                  obj => obj.name === App.$clickedImgId
+                );
                 new Audio("./sounds/" + currentObj.sound).play();
               }
             }
@@ -1519,11 +1648,10 @@ jQuery(
               selected: selected
             });
           }
-
         },
 
         onKeyDown: function(e) {
-          console.log('keydown happened');
+          console.log("keydown happened");
           if (e.keyCode == 83) {
             // = "S"
             if (App.uniSound) {
@@ -1564,7 +1692,7 @@ jQuery(
             // = "O"
             // forcing "game end":
             if (App.testingMode && App.iAmTheGameMaster && App.gameStarted) {
-              console.log('forcing game end');
+              console.log("forcing game end");
               App.endGame();
             }
           } else if (e.keyCode == 81) {
@@ -1595,8 +1723,10 @@ jQuery(
             App.myGuess = e.currentTarget.getAttribute("key");
             // sessionStorage.setItem("myGuess", myGuess);
 
-            console.log('you clicked on: ', App.myGuess);
-            $(`.highlight[key=${App.myGuess}]`).addClass(`${App.selectedPieceId}`);
+            console.log("you clicked on: ", App.myGuess);
+            $(`.highlight[key=${App.myGuess}]`).addClass(
+              `${App.selectedPieceId}`
+            );
             IO.socket.emit("made a guess", {
               gameId: App.gameId,
               guessingPlayer: App.selectedPieceId,
@@ -1636,7 +1766,7 @@ jQuery(
         clickedReadyForNextTurn: function() {
           // game master decides when it's time for the next turn:
           // NOTE: this function is only triggered by the GAME MASTER when clicking "ready for next turn". other players will get the objects for next turn from the game master.
-          const $selectedObjects = $('#objects').find(".selected");
+          const $selectedObjects = $("#objects").find(".selected");
 
           const numberOfUsedObjects = $selectedObjects.length;
 
@@ -1739,11 +1869,11 @@ jQuery(
 
           App.shuffleTickerObjects(App.tickerObjects);
           // move objects ticker:
-          App.tickerOffsetLeft = (App.tickerObjects.offsetLeft * 100) / App.viewportWidth;
+          App.tickerOffsetLeft =
+            (App.tickerObjects.offsetLeft * 100) / App.viewportWidth;
           // => number (in px), x-position of element relative to its parent
           App.moveTickerObjects();
-        },
-
+        }
 
         //
         // /**
@@ -1770,9 +1900,12 @@ jQuery(
         // console.log('onWindowResize happening');
         App.viewportWidth = window.innerWidth;
         if (App.gameStarted) {
-          [App.borderTop, App.borderBottom, App.borderLeft, App.borderRight] = App.get$objBorders(
-            App.$constructionArea
-          );
+          [
+            App.borderTop,
+            App.borderBottom,
+            App.borderLeft,
+            App.borderRight
+          ] = App.get$objBorders(App.$constructionArea);
 
           App.adjustObjectPositions(App.viewportWidth);
         }
@@ -1826,7 +1959,8 @@ jQuery(
       moveTickerObjects: function() {
         App.tickerOffsetLeft = App.tickerOffsetLeft - 0.07; // moving in vw units
         // console.log('App.tickerOffsetLeft:', App.tickerOffsetLeft);
-        let vwPositionOfFirstObject = (App.objectList[0].offsetWidth * 100) / App.viewportWidth;
+        let vwPositionOfFirstObject =
+          (App.objectList[0].offsetWidth * 100) / App.viewportWidth;
         if (App.tickerOffsetLeft < -vwPositionOfFirstObject) {
           // true when first object is off screen..
           // add to tickerOffsetLeft the width of the currently first object
@@ -1944,10 +2078,13 @@ jQuery(
         // safe transform values of selected objects:
         let savedTransformProps = {};
         App.$objects.find(".selected").each(function() {
+          let imgId = $(this)
+            .find("img")
+            .attr("id");
 
-          let imgId = $(this).find('img').attr('id');
-
-          let [translateXpx, translateYpx, rotate] = App.getTransformProps($(this));
+          let [translateXpx, translateYpx, rotate] = App.getTransformProps(
+            $(this)
+          );
           // console.log('translateXpx, translateYpx, rotate:', translateXpx, translateYpx, rotate);
 
           let translateXvw = (translateXpx * 100) / viewportWidth;
@@ -1970,7 +2107,9 @@ jQuery(
 
         // get saved transform props back for selected objects:
         App.$objects.find(".selected").each(function() {
-          let imgId = $(this).find('img').attr('id');
+          let imgId = $(this)
+            .find("img")
+            .attr("id");
 
           $(this).css({
             transform: `translate(${savedTransformProps[imgId][0]}vw, ${savedTransformProps[imgId][1]}vw) rotate(${savedTransformProps[imgId][2]}deg)`
@@ -1978,7 +2117,10 @@ jQuery(
         });
       },
 
-      adjustSelectedObjectPositions: function(usedObjects, buildersViewportWidth) {
+      adjustSelectedObjectPositions: function(
+        usedObjects,
+        buildersViewportWidth
+      ) {
         // console.log('adjustSelectedObjectPositions happening');
         // NOTE: I can't use getTransformProps(); here because it only gets
         // the transform props of a RENDERED HTML ELEMENT.
@@ -1987,33 +2129,37 @@ jQuery(
 
         let usedObjectsDiv = document.createElement("div");
         usedObjectsDiv.innerHTML = usedObjects;
-        let $selectedObjects = $(usedObjectsDiv).find('.selected');
+        let $selectedObjects = $(usedObjectsDiv).find(".selected");
         // console.log('$selectedObjects:', $selectedObjects);
 
         // get transform props of all selected objects:
         $selectedObjects.each(function() {
-          let imgId = $(this).find('img').attr('id');
+          let imgId = $(this)
+            .find("img")
+            .attr("id");
 
           let transformProps = $(this).css("transform");
           // looks like: translate(-303px, -291px) rotate(0deg)
 
-          let transformPropsSplit = transformProps.split(') rotate(');
+          let transformPropsSplit = transformProps.split(") rotate(");
           // console.log('transformPropsSplit:', transformPropsSplit);
 
-          let rotate = transformPropsSplit[1].split('deg)')[0];
+          let rotate = transformPropsSplit[1].split("deg)")[0];
 
-          let translateProps = transformPropsSplit[0].split('translate(')[1];
-          translateProps = translateProps.split(', ');
-          let translateXpx = Number(translateProps[0].split('px')[0]);
-          let translateYpx = Number(translateProps[1].split('px')[0]);
+          let translateProps = transformPropsSplit[0].split("translate(")[1];
+          translateProps = translateProps.split(", ");
+          let translateXpx = Number(translateProps[0].split("px")[0]);
+          let translateYpx = Number(translateProps[1].split("px")[0]);
 
           // recalculate translate props for other players using relative vw units:
           let translateXvw = (translateXpx * 100) / buildersViewportWidth;
           let translateYvw = (translateYpx * 100) / buildersViewportWidth;
 
-          $('#objects').find(`.${imgId}`).css({
-            transform: `translate(${translateXvw}vw, ${translateYvw}vw) rotate(${rotate}deg)`
-          });
+          $("#objects")
+            .find(`.${imgId}`)
+            .css({
+              transform: `translate(${translateXvw}vw, ${translateYvw}vw) rotate(${rotate}deg)`
+            });
         });
       },
 
@@ -2023,7 +2169,7 @@ jQuery(
           tValues = tValues.split(")")[0],
           tValues = tValues.split(",");
 
-          // get the transform/translate properties:
+        // get the transform/translate properties:
         let translateX = Number(tValues[4]);
         let translateY = Number(tValues[5]);
 
@@ -2055,12 +2201,14 @@ jQuery(
 
       pullToFront: function($imgBox) {
         let highestZIndex = 1;
-        $('#objects').find(".selected").each(function() {
-          const currentZIndex = Number($(this).css("z-index"));
-          if (currentZIndex > highestZIndex) {
-            highestZIndex = currentZIndex;
-          }
-        });
+        $("#objects")
+          .find(".selected")
+          .each(function() {
+            const currentZIndex = Number($(this).css("z-index"));
+            if (currentZIndex > highestZIndex) {
+              highestZIndex = currentZIndex;
+            }
+          });
         $imgBox.css({
           "z-index": highestZIndex + 1
         });
@@ -2169,7 +2317,12 @@ jQuery(
         // console.log('moveXvw:', moveXvw);
         App.moveYvw = (App.moveY * 100) / App.viewportWidth;
         // console.log('moveYvw:', moveYvw);
-        App.moveObjects(App.$clickedImgId, App.moveXvw, App.moveYvw, App.transformRotate);
+        App.moveObjects(
+          App.$clickedImgId,
+          App.moveXvw,
+          App.moveYvw,
+          App.transformRotate
+        );
       },
 
       rotateObject: function(direction) {
@@ -2188,7 +2341,12 @@ jQuery(
           App.$clickedImgBox.css({
             transform: `translate(${App.moveX}px, ${App.moveY}px) rotate(${App.transformRotate}deg)`
           });
-          App.moveObjects(App.$clickedImgId, App.moveXvw, App.moveYvw, App.transformRotate);
+          App.moveObjects(
+            App.$clickedImgId,
+            App.moveXvw,
+            App.moveYvw,
+            App.transformRotate
+          );
         }
       },
 
@@ -2210,8 +2368,14 @@ jQuery(
       },
 
       showAnswers: function(data) {
-        if (!App.itsMyTurn && App.myRole == 'Player') {
-          $(`.highlight[key=${App.myGuess}]`).removeClass(App.selectedPieceId);
+        if (!App.itsMyTurn && App.myRole == "Player") {
+          // $(`.highlight[key=${App.myGuess}]`).removeClass(App.selectedPieceId);
+          // in case someone got disconnected/reconnecetd and got the
+          // backup word card during the guessing phase:
+          // remove all possible color classes from all word card items:
+          $(".highlight").removeClass(
+            "grey purple blue green yellow orange red pink"
+          );
         }
         // show answers of all guessers:
         for (let player in data.guessedAnswers) {
@@ -2265,7 +2429,10 @@ jQuery(
 
           if (player == App.selectedPieceId) {
             App.myTotalPoints = data.playerPointsTotal[player];
-            sessionStorage.setItem("myTotalPoints", data.playerPointsTotal[player]);
+            sessionStorage.setItem(
+              "myTotalPoints",
+              data.playerPointsTotal[player]
+            );
           }
         }
 
@@ -2286,17 +2453,18 @@ jQuery(
       },
 
       resetObjectImage: function($selectedObject) {
-        if (!$selectedObject.hasClass('v1') && !$selectedObject.hasClass('only1')) {
-          let $img = $selectedObject.find('img');
-          let oldSrc = $img.attr('src');
+        if (
+          !$selectedObject.hasClass("v1") &&
+          !$selectedObject.hasClass("only1")
+        ) {
+          let $img = $selectedObject.find("img");
+          let oldSrc = $img.attr("src");
           let srcNameV = oldSrc.split(/2.png|3.png/g)[0];
           let newSrc = srcNameV + "1.png";
 
           // set new image source:
           $img.attr("src", newSrc);
-          $selectedObject
-            .removeClass("v2 v3")
-            .addClass("v1");
+          $selectedObject.removeClass("v2 v3").addClass("v1");
         }
       },
 
@@ -2318,7 +2486,9 @@ jQuery(
           let $playerPiece = $playersEnd.find(`#${rankingArr[i].player}`);
           let score = rankingArr[i].points;
           // let fallHeight = (1 - score/maxScore) * maxFallHeight;
-          let fallHeight = (1 - (score - lowestScore)/(maxScore - lowestScore)) * maxFallHeight;
+          let fallHeight =
+            (1 - (score - lowestScore) / (maxScore - lowestScore)) *
+            maxFallHeight;
 
           // console.log(`${rankingArr[i].player} falls ${fallHeight}vw!`);
 
@@ -2328,7 +2498,7 @@ jQuery(
 
           if (score == maxScore) {
             setTimeout(() => {
-              $playerPiece.addClass('winner');
+              $playerPiece.addClass("winner");
             }, 1000);
           }
         }
@@ -2341,12 +2511,12 @@ jQuery(
       },
 
       /**
-      * Display the countdown timer on the Host screen
-      *
-      * @param $el The container element for the countdown timer
-      * @param startTime
-      * @param callback The function to call when the timer ends.
-      */
+       * Display the countdown timer on the Host screen
+       *
+       * @param $el The container element for the countdown timer
+       * @param startTime
+       * @param callback The function to call when the timer ends.
+       */
       countDown: function($el, startTime, callback) {
         // Display the starting time on the screen.
         $el.text(startTime);
@@ -2372,7 +2542,7 @@ jQuery(
             return;
           }
         }
-      },
+      }
 
       /**
        * Make the text inside the given element as big as possible
