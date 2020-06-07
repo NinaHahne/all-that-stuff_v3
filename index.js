@@ -34,7 +34,7 @@ app.get("/", function(req, res) {
 const server = require("http").Server(app);
 const io = require("socket.io")(server, {
   origins:
-    "localhost:8080 http://192.168.0.15:8080:* http://192.168.2.112:8080:* https://allthatstuff.herokuapp.com:*"
+    "localhost:8080 http://192.168.0.15:8080:* http://192.168.2.112:8080:* https://allthatstuff.herokuapp.com:* www.allthatstuff.fun:*"
 });
 server.listen(process.env.PORT || 8080, () =>
   console.log("port 8080 listening! - AllThatStuff")
