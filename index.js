@@ -10,9 +10,9 @@ const game = require("./game");
 // Serve static html, js, css, and image files from the 'public' directory:
 app.use(express.static("./public"));
 
-// app.get("/", function(req, res) {
-//   res.sendFile(__dirname + "/public/index.html");
-// });
+app.get("/", function(req, res) {
+  res.sendFile(__dirname + "/public/index.html");
+});
 // ------------------------------------------
 // // // Create a Node.js based http server on port 8080
 // const server = require("http")
@@ -34,7 +34,7 @@ app.use(express.static("./public"));
 const server = require("http").Server(app);
 const io = require("socket.io")(server, {
   origins:
-    "localhost:8080 http://192.168.0.15:8080:* http://192.168.2.112:8080:* allthatstuff.herokuapp.com:*"
+    "localhost:8080 http://192.168.0.15:8080:* http://192.168.2.112:8080:* https://allthatstuff.herokuapp.com:*"
 });
 server.listen(process.env.PORT || 8080, () =>
   console.log("port 8080 listening! - AllThatStuff")
