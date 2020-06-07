@@ -13,17 +13,32 @@ app.use(express.static("./public"));
 // app.get("/", function(req, res) {
 //   res.sendFile(__dirname + "/public/index.html");
 // });
+// ------------------------------------------
+// // // Create a Node.js based http server on port 8080
+// const server = require("http")
+//   .createServer(app)
+//   .listen(process.env.PORT || 8080, () =>
+//     console.log("port 8080 listening! - AllThatStuff")
+//   );
+//
+// // Create a Socket.IO server and attach it to the http server
+// var io = require("socket.io").listen(server);
+//
+// // Listen for Socket.IO Connections. Once connected, start the game logic.
+// io.sockets.on("connection", function(socket) {
+//   //console.log('client connected');
+//   game.initGame(io, socket);
+// });
 
-// // Create a Node.js based http server on port 8080
-const server = require("http")
-  .createServer(app)
-  .listen(process.env.PORT || 8080, () =>
-    console.log("port 8080 listening! - AllThatStuff")
-  );
-
-// Create a Socket.IO server and attach it to the http server
-var io = require("socket.io").listen(server);
-
+// ------------------------------------------
+const server = require("http").Server(app);
+const io = require("socket.io")(server, {
+  origins:
+    "localhost:8080 http://192.168.0.15:8080:* http://192.168.2.112:8080:* allthatstuff.herokuapp.com:*"
+});
+server.listen(process.env.PORT || 8080, () =>
+  console.log("port 8080 listening! - AllThatStuff")
+);
 // Listen for Socket.IO Connections. Once connected, start the game logic.
 io.sockets.on("connection", function(socket) {
   //console.log('client connected');
