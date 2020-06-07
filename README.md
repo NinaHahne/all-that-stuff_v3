@@ -1,6 +1,8 @@
 # AllThatStuff_v3
 Multiplayer word association game
 
+[play](http://www.allthatstuff.fun/)
+
 ## Features
 * Players take turns
 * Select and drag&drop elements to make the other players guess a word
