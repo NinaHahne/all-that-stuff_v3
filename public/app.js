@@ -33,10 +33,14 @@ jQuery(
 
         IO.socket.on("welcome", IO.onWelcome);
         IO.socket.on("add player", IO.onAddPlayer);
-        IO.socket.on("language has been changed", App.languageHasBeenChanged);
+        IO.socket.on("add player midgame", IO.onAddPlayerMidGame);
         IO.socket.on("remove player", IO.onRemovePlayer);
+
         IO.socket.on("new game master", IO.onNewGameMaster);
+        IO.socket.on("language has been changed", App.languageHasBeenChanged);
+
         IO.socket.on("game has been started", IO.onGameHasBeenStarted);
+        IO.socket.on("next card", IO.onNextCard);
 
         IO.socket.on("objects are moving", IO.onObjectsAreMoving);
         IO.socket.on("object dropped", IO.onObjectIsDropped);
@@ -48,11 +52,6 @@ jQuery(
         IO.socket.on("next turn", IO.onChangeTurn);
         IO.socket.on("game ends", IO.onGameEnds);
 
-        IO.socket.on("add player midgame", IO.onAddPlayerMidGame);
-
-        // IO.socket.on("newWordData", IO.onNewWordData);
-        // IO.socket.on("hostCheckAnswer", IO.hostCheckAnswer);
-        // IO.socket.on("gameOver", IO.gameOver);
       },
 
       /**
@@ -359,6 +358,7 @@ jQuery(
               App.selectedPieceId
             );
             $("#done-btn").removeClass("hidden");
+            $("#skip-icon").removeClass("hidden");
 
             App.$message.addClass("bold");
             App.$message[0].innerText = `it's your turn!`;
@@ -544,6 +544,7 @@ jQuery(
             App.$message[0].innerText = "...under construction...";
 
             $("#done-btn").addClass("hidden");
+
           } else if (data.startPlayer == App.selectedPieceId) {
             App.itsMyTurn = true;
 
@@ -556,6 +557,7 @@ jQuery(
             App.$message.addClass("bold");
             App.$message[0].innerText = `it's your turn!`;
 
+            $("#skip-icon").removeClass("hidden");
             $("#done-btn").removeClass("hidden");
           }
 
@@ -585,84 +587,28 @@ jQuery(
         }
       },
 
-      onChangeTurn: function(data) {
-        console.log(`it's ${data.nextPlayer}'s turn now!'`);
-        $(`#${data.activePlayer}`).removeClass("myTurn");
-        $("#construction-area").removeClass(data.activePlayer);
-
-        $(`#${data.nextPlayer}`).addClass("myTurn");
-        $("#construction-area").addClass(data.nextPlayer);
-
-        $(`.highlight[key=${App.correctAnswer}]`).removeClass(App.activePlayer);
-        // in case someone got disconnected/reconnecetd and got the
-        // backup word card in the previous turn:
-        // remove all possible color classes from all word card items:
-        $(`.highlight`).removeClass(
-          "grey purple blue green yellow orange red pink"
-        );
-
-        // reset guess markers:
-        let $guessesBoxesList = $(`.table-row`).find(".guesses");
-        for (let i = 0; i < $guessesBoxesList.length; i++) {
-          $guessesBoxesList[i].innerHTML = "";
-        }
-
-        // create "points if correct" boxes:
-        // reset from previous game:
-        App.resetPointsIfCorrect();
-        App.backupGuesses();
-
-        App.activePlayer = data.nextPlayer;
+      onNextCard: function(data) {
+        console.log('builder skipped a card');
         App.correctAnswer = data.correctAnswer;
-        App.myGuess = "";
-        App.doneBtnPressed = false;
-        App.everyoneGuessed = false;
 
-        // objects and queue objects for the next turn were delivered by the game master. other players:
-        if (!App.iAmTheGameMaster) {
-          App.$objects[0].innerHTML = data.activeObjects;
-          App.$queue[0].innerHTML = data.queuedObjects;
-
-          App.setObjectPositionsAbsolute();
-        }
-
-        // new word card:
+        // display new word card:
         App.cardTitle[0].innerHTML = data.newCard.title;
         let cardItems = data.newCard.items;
         for (let i = 0; i < cardItems.length; i++) {
           App.items[i].innerHTML = cardItems[i];
         }
 
-        App.$message.removeClass("hidden");
-        App.$message.removeClass("no-animation");
-        $("#next-btn").addClass("hidden");
-
-        // update number of turns left:
-        let currentTurn = App.numberOfTurns - data.numberOfTurnsLeft + 1;
-        App.$rounds[0].innerText = `${currentTurn}/${App.numberOfTurns}`;
-
-        // if next turn is my turn:
-        if (data.nextPlayer == App.selectedPieceId) {
+        if (App.itsMyTurn) {
           console.log(`you drew card number ${data.newCard.id}.`);
           console.log(`please build item number ${data.correctAnswer}`);
           $(`.highlight[key=${data.correctAnswer}]`).addClass(
             App.selectedPieceId
           );
-          $("#done-btn").removeClass("hidden");
-          App.$message[0].innerText = `it's your turn!`;
-          App.$message.addClass("bold");
-          App.itsMyTurn = true;
-        } else {
-          // if next turn is not my turn:
-          $("#done-btn").addClass("hidden");
-          App.$message.removeClass("bold");
-          App.$message[0].innerText = "...under construction...";
-          App.itsMyTurn = false;
         }
+        // TODO: play a card skipping sound
 
-        if (!App.muted) {
-          App.startGong.play();
-        }
+        // backup new word cards (including "empty guesses"):
+        App.backupGuesses();
       },
 
       onObjectsAreMoving: function(data) {
@@ -784,6 +730,88 @@ jQuery(
         }, 500); // time before showAnswers
       },
 
+      onChangeTurn: function(data) {
+        console.log(`it's ${data.nextPlayer}'s turn now!'`);
+        $(`#${data.activePlayer}`).removeClass("myTurn");
+        $("#construction-area").removeClass(data.activePlayer);
+
+        $(`#${data.nextPlayer}`).addClass("myTurn");
+        $("#construction-area").addClass(data.nextPlayer);
+
+        $(`.highlight[key=${App.correctAnswer}]`).removeClass(App.activePlayer);
+        // in case someone got disconnected/reconnecetd and got the
+        // backup word card in the previous turn:
+        // remove all possible color classes from all word card items:
+        $(`.highlight`).removeClass(
+          "grey purple blue green yellow orange red pink"
+        );
+
+        // reset guess markers:
+        let $guessesBoxesList = $(`.table-row`).find(".guesses");
+        for (let i = 0; i < $guessesBoxesList.length; i++) {
+          $guessesBoxesList[i].innerHTML = "";
+        }
+
+        // create "points if correct" boxes:
+        // reset from previous game:
+        App.resetPointsIfCorrect();
+        App.backupGuesses();
+
+        App.activePlayer = data.nextPlayer;
+        App.correctAnswer = data.correctAnswer;
+        App.myGuess = "";
+        App.doneBtnPressed = false;
+        App.everyoneGuessed = false;
+
+        // objects and queue objects for the next turn were delivered by the game master. other players:
+        if (!App.iAmTheGameMaster) {
+          App.$objects[0].innerHTML = data.activeObjects;
+          App.$queue[0].innerHTML = data.queuedObjects;
+
+          App.setObjectPositionsAbsolute();
+        }
+
+        // new word card:
+        App.cardTitle[0].innerHTML = data.newCard.title;
+        let cardItems = data.newCard.items;
+        for (let i = 0; i < cardItems.length; i++) {
+          App.items[i].innerHTML = cardItems[i];
+        }
+
+        App.$message.removeClass("hidden");
+        App.$message.removeClass("no-animation");
+        $("#next-btn").addClass("hidden");
+
+        // update number of turns left:
+        let currentTurn = App.numberOfTurns - data.numberOfTurnsLeft + 1;
+        App.$rounds[0].innerText = `${currentTurn}/${App.numberOfTurns}`;
+
+        // if next turn is my turn:
+        if (data.nextPlayer == App.selectedPieceId) {
+          console.log(`you drew card number ${data.newCard.id}.`);
+          console.log(`please build item number ${data.correctAnswer}`);
+          $(`.highlight[key=${data.correctAnswer}]`).addClass(
+            App.selectedPieceId
+          );
+          $("#done-btn").removeClass("hidden");
+          $("#skip-icon").removeClass("hidden");
+
+          App.$message[0].innerText = `it's your turn!`;
+          App.$message.addClass("bold");
+          App.itsMyTurn = true;
+        } else {
+          // if next turn is not my turn:
+          $("#done-btn").addClass("hidden");
+          App.$message.removeClass("bold");
+          App.$message[0].innerText = "...under construction...";
+          App.itsMyTurn = false;
+        }
+
+        if (!App.muted) {
+          App.startGong.play();
+        }
+      },
+
       onGameEnds: function(data) {
         if (App.gameStarted) {
           App.gameStarted = false;
@@ -823,14 +851,6 @@ jQuery(
           }, 500);
         }
       },
-
-      // /**
-      //  * Let everyone know the game has ended.
-      //  * @param data
-      //  */
-      // gameOver: function(data) {
-      //   App[App.myRole].endGame(data);
-      // },
 
       /**
        * An error has occurred.
@@ -1160,18 +1180,26 @@ jQuery(
         $("#help-btn").on("click", App.Player.toggleHelp);
         $("#next-btn").on("click", App.Player.clickedReadyForNextTurn);
 
+        // TODO: add a skip message that appears on hover over skip icon:
+        
+        // $('#skip-icon').hover(
+        //   function(){
+        //     if (App.itsMyTurn) {
+        //       $('#skip-msg').removeClass('hidden');
+        //     }
+        //   },
+        //   function(){
+        //     if (App.itsMyTurn) {
+        //       $('#skip-msg').addClass('hidden');
+        //     }
+        //   }
+        // );
+        $("#skip-icon").on("click", App.Player.clickedSkipCard);
+
         // touch events:
-        $("img").on("contextmenu", e => {
-          e.preventDefault();
-        });
-
-        $(".wordcard").on("contextmenu", e => {
-          e.preventDefault();
-        });
-
-        $("#construction-area").on("contextmenu", e => {
-          e.preventDefault();
-        });
+        $("img").on("contextmenu", e => {e.preventDefault();});
+        $(".wordcard").on("contextmenu", e => {e.preventDefault();});
+        $("#construction-area").on("contextmenu", e => {e.preventDefault();});
 
       },
 
@@ -1492,6 +1520,9 @@ jQuery(
               // e.preventDefault && e.preventDefault();
               // console.log('touchstart!');
             }
+            // player can only skip a wordcard until they clicked an object:
+            $("#skip-icon").addClass("hidden");
+
             App.objectClicked = true;
             // $clickedImgBox = $(this) || e.currentTarget;
             App.$clickedImgBox = $(e.currentTarget);
@@ -1814,6 +1845,17 @@ jQuery(
             (App.tickerObjects.offsetLeft * 100) / App.viewportWidth;
           // => number (in px), x-position of element relative to its parent
           App.moveTickerObjects();
+        },
+
+        clickedSkipCard: function() {
+          if (App.itsMyTurn) {
+            // console.log('skip this card!');
+            $(`.highlight[key=${App.correctAnswer}]`).removeClass(
+              App.selectedPieceId
+            );
+            IO.socket.emit("skip card", App.gameId);
+            $(this).addClass("hidden");
+          }
         }
 
         //

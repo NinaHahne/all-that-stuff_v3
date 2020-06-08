@@ -32,6 +32,7 @@ exports.initGame = function(sio, socket) {
   gameSocket.on("dropping object", onDroppingObject);
   gameSocket.on("done building", onDoneBuilding);
 
+  gameSocket.on("skip card", onSkipCard);
   gameSocket.on("made a guess", onMadeAGuess);
   gameSocket.on("guesses backup", onGuessesBackup);
   gameSocket.on("objects for next turn", onObjectsForNextTurn);
@@ -56,17 +57,15 @@ exports.initGame = function(sio, socket) {
  * The 'START' button was clicked and 'hostCreateNewGame' event occurred.
  */
 function hostCreateNewGame() {
-  // Create a unique Socket.IO Room
-  // var thisGameId = (Math.random() * 100000) | 0;
-  // const thisGameId = cryptoRandomString({length: 4, type: 'distinguishable'});
-  // //=> 'CDE8'
-  const thisGameId = cryptoRandomString({
-    length: 4,
-    characters: "ABCDEFGHJKLMNOPQRSTUVWXYZ"
-  });
-  //=> 'ABQR'
-
-  // TODO: check if gameId is not already in use
+  const gameIdsArray = Object.keys(gameStates);
+  let thisGameId;
+  do {
+    thisGameId = cryptoRandomString({
+      length: 4,
+      characters: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    });
+    // generate new game IDs as long as the generated ID is already in use:
+  } while (gameIdsArray.includes(thisGameId));
 
   let socket = this;
   // initiate game state:
@@ -368,6 +367,16 @@ function onDoneBuilding(data) {
     activePlayer: data.activePlayer,
     activeObjects: data.activeObjects,
     buildersViewportWidth: data.buildersViewportWidth
+  });
+}
+
+function onSkipCard(gameId) {
+  let game = gameStates[gameId];
+  replaceCard(gameId);
+  game.correctAnswer = randomNumber(1, 7);
+  io.sockets.in(gameId).emit("next card", {
+    newCard: game.firstCard,
+    correctAnswer: game.correctAnswer
   });
 }
 

@@ -962,6 +962,14 @@ input:focus {
   position: relative;
 }
 
+#skip-icon {
+  position: absolute;
+  height: 1.6vw;
+  top: 1.4vw;
+  right: 0.4vw;
+  cursor: pointer;
+}
+
 .wordcard {
   display: flex;
   flex-direction: column;
