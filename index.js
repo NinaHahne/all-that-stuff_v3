@@ -13,6 +13,11 @@ app.use(express.static("./public"));
 app.get("/", function(req, res) {
   res.sendFile(__dirname + "/public/index.html");
 });
+
+app.get("/preview", function(req, res) {
+  res.sendFile(__dirname + "/public/preview/AllThatStuff_start-menu.png");
+});
+
 // ------------------------------------------
 // // // Create a Node.js based http server on port 8080
 // const server = require("http")
