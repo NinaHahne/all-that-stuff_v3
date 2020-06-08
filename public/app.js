@@ -216,6 +216,7 @@ jQuery(
 
         // if I am the rejoining player:
         if (data.selectedPieceId == mySelectedPieceId) {
+          // TODO: take care of "App.myGuess" ?
           sessionStorage.setItem("mySocketId", data.socketId);
           App.mySocketId = data.socketId;
           App.myRole = "Player";
@@ -1112,6 +1113,20 @@ jQuery(
         $("#chosen-language").on("click", App.Player.onLanguageClick);
         App.$startGameBtn.on("click", App.Player.onStartGameClick);
         App.$doc.on("keydown", App.Player.onKeyDown);
+
+        // touch events:
+        App.touch = true;
+        $(document).on("touchstart", ".img-box", e => {
+          App.Player.onMouseDown(e, App.touch);
+        });
+
+        $(document).on("touchmove", e => {
+          App.Player.onMouseMove(e, App.touch);
+        });
+
+        $(document).on("touchend", e => {
+          App.Player.onMouseUp(e, App.touch);
+        });
       },
 
       bindEventsJoinGame: function() {
@@ -1135,6 +1150,20 @@ jQuery(
         $("#done-btn").on("click", App.Player.onDoneBtnClick);
         $("#help-btn").on("click", App.Player.toggleHelp);
         $("#next-btn").on("click", App.Player.clickedReadyForNextTurn);
+
+        // touch events:
+        $("img").on("contextmenu", e => {
+          e.preventDefault();
+        });
+
+        $(".wordcard").on("contextmenu", e => {
+          e.preventDefault();
+        });
+
+        $("#construction-area").on("contextmenu", e => {
+          e.preventDefault();
+        });
+
       },
 
       bindEventsGameEnd: function() {
