@@ -418,15 +418,17 @@ jQuery(
         let $piece = $("#" + pieceId);
         // console.log('$piece: ', $piece);
 
-        $piece.removeClass("selectedPlayerPiece");
-        // this will change the font color (to white) and border style (to dashed) of the player who left.
+        if (!App.gameOver) {
+          $piece.removeClass("selectedPlayerPiece");
+          // this will change the font color (to white) and border style (to dashed) of the player who left.
 
-        // if the game has not started yet (still in the start menu), also reset the player name to "?".
-        if (!App.gameStarted) {
-          let $playerName = $piece.find(".player-name");
-          // $playerName[0].innerText = "?";
-          $playerName.text("?");
-          $piece.removeClass("name4 name6 name8 name10 name12");
+          // if the game has not started yet (still in the start menu), also reset the player name to "?".
+          if (!App.gameStarted) {
+            let $playerName = $piece.find(".player-name");
+            // $playerName[0].innerText = "?";
+            $playerName.text("?");
+            $piece.removeClass("name4 name6 name8 name10 name12");
+          }
         }
 
         // in case he was the game master and the last remaining player, delete crown for the host player screen:
@@ -575,6 +577,7 @@ jQuery(
           }
 
           App.gameStarted = true;
+          App.gameOver = false;
         }
       },
 
@@ -780,6 +783,7 @@ jQuery(
       onGameEnds: function(data) {
         if (App.gameStarted) {
           App.gameStarted = false;
+          App.gameOver = true;
           // Fill the game screen with the appropriate HTML
           App.$gameArea.html(App.$templateGameEnd);
           App.bindEventsGameEnd();
@@ -866,6 +870,7 @@ jQuery(
 
       chosenLanguage: "english",
       gameStarted: false,
+      gameOver: false,
       numberOfTurns: 0,
       /**
        * Flag to indicate if a new game is starting.
