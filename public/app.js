@@ -1319,7 +1319,7 @@ jQuery(
           //   .append("<p/>")
           //   .text("Player " + data.playerName + " joined the game.");
 
-          let message = `<p>${data.playerName} joined the game.</p>`;
+          let message = `<p>${data.playerName} joined the room.</p>`;
           $("#playersWaiting").append(message);
 
           // Store the new player's data on the Host.
