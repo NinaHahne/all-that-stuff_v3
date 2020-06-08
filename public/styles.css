@@ -475,10 +475,6 @@ input:focus {
   height: 14vw;
 }
 
-#ticker-objects .img-box img:hover {
-  cursor: unset;
-}
-
 /* §§ --------------COLORS------------- */
 .grey {
   background-color: rgba(128, 128, 128, 0.4);
@@ -552,7 +548,7 @@ input:focus {
   color: black;
 }
 
-.player:not(.selectedPlayerPiece):hover {
+#start-menu:not(.host) .player:not(.selectedPlayerPiece):hover {
   cursor: pointer;
   transform: scale(1.2);
   border-style: solid;
@@ -992,7 +988,7 @@ input:focus {
   align-items: center;
 }
 
-.table-row:hover {
+#main-game:not(.host) .table-row:hover {
   cursor: pointer;
 }
 
@@ -1013,7 +1009,7 @@ input:focus {
   transition: border-color 0.2s ease-out;
 }
 
-.table-row:hover .highlight {
+#main-game:not(.host) .table-row:hover .highlight {
   border-color: lightgrey;
 }
 
@@ -1115,7 +1111,7 @@ small {
   width: auto;
 }
 
-.img-box img:hover {
+#main-game:not(.host) .img-box img:hover {
   cursor: pointer;
 }
 

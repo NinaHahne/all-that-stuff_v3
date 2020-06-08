@@ -495,6 +495,10 @@ jQuery(
             App.setupMutationObserver();
             App.preventImgDragging();
 
+            if (App.myRole == "Host") {
+              $('#main-game').addClass('host');
+            }
+
             let joinedPlayersList = App.selectPlayersContainer.getElementsByClassName(
               "selectedPlayerPiece"
             );
@@ -1327,14 +1331,8 @@ jQuery(
 
           // Increment the number of players in the room
           App.Host.numPlayersInRoom += 1;
+          // currently not using this info..
 
-          // // If two players have joined, start the game!
-          // if (App.Host.numPlayersInRoom === 2) {
-          //   // console.log('Room is full. Almost ready!');
-          //
-          //   // Let the server know that two players are present.
-          //   IO.socket.emit("hostRoomFull", App.gameId);
-          // }
         }
 
         // /**
@@ -1370,94 +1368,6 @@ jQuery(
         // },
 
         // /**
-        //  * Show the word for the current round on screen.
-        //  * @param data {{round: *, word: *, answer: *, list: Array}}
-        //  */
-        // newWord: function(data) {
-        //   // Insert the new word into the DOM
-        //   $("#hostWord").text(data.word);
-        //   // App.doTextFit("#hostWord");
-        //
-        //   // Update the data for the current round
-        //   App.Host.currentCorrectAnswer = data.answer;
-        //   App.Host.currentRound = data.round;
-        // },
-        //
-        // /**
-        //  * Check the answer clicked by a player.
-        //  * @param data {{round: *, playerId: *, answer: *, gameId: *}}
-        //  */
-        // checkAnswer: function(data) {
-        //   // Verify that the answer clicked is from the current round.
-        //   // This prevents a 'late entry' from a player whos screen has not
-        //   // yet updated to the current round.
-        //   if (data.round === App.currentRound) {
-        //     // Get the player's score
-        //     var $pScore = $("#" + data.playerId);
-        //
-        //     // Advance player's score if it is correct
-        //     if (App.Host.currentCorrectAnswer === data.answer) {
-        //       // Add 5 to the player's score
-        //       $pScore.text(+$pScore.text() + 5);
-        //
-        //       // Advance the round
-        //       App.currentRound += 1;
-        //
-        //       // Prepare data to send to the server
-        //       var nextData = {
-        //         gameId: App.gameId,
-        //         round: App.currentRound
-        //       };
-        //
-        //       // Notify the server to start the next round.
-        //       IO.socket.emit("hostNextRound", nextData);
-        //     } else {
-        //       // A wrong answer was submitted, so decrement the player's score.
-        //       $pScore.text(+$pScore.text() - 3);
-        //     }
-        //   }
-        // },
-        //
-        // /**
-        //  * All 10 rounds have played out. End the game.
-        //  * @param data
-        //  */
-        // endGame: function(data) {
-        //   // Get the data for player 1 from the host screen
-        //   var $p1 = $("#player1Score");
-        //   var p1Score = +$p1.find(".score").text();
-        //   var p1Name = $p1.find(".playerName").text();
-        //
-        //   // Get the data for player 2 from the host screen
-        //   var $p2 = $("#player2Score");
-        //   var p2Score = +$p2.find(".score").text();
-        //   var p2Name = $p2.find(".playerName").text();
-        //
-        //   // Find the winner based on the scores
-        //   var winner = p1Score < p2Score ? p2Name : p1Name;
-        //   var tie = p1Score === p2Score;
-        //
-        //   // Display the winner (or tie game message)
-        //   if (tie) {
-        //     $("#hostWord").text("It's a Tie!");
-        //   } else {
-        //     $("#hostWord").text(winner + " Wins!!");
-        //   }
-        //   // App.doTextFit("#hostWord");
-        //   data.winner = winner;
-        //   if (data.done > 0) {
-        //     // do nothing?
-        //   } else data.done = 0;
-        //   //console.log(data);
-        //   //IO.socket.emit("clientEndGame",data);
-        //   // Reset game data
-        //   App.Host.numPlayersInRoom = 0;
-        //   App.isNewGame = true;
-        //   IO.socket.emit("hostNextRound", data);
-        //   // Reset game data
-        // },
-        //
-        // /**
         //  * A player hit the 'Start Again' button after the end of a game.
         //  */
         // restartGame: function() {
@@ -1473,7 +1383,7 @@ jQuery(
       Player: {
         // Click handler for the 'JOIN' button:
         onJoinAGameClick: function() {
-          // console.log('Clicked "Join A Game"');
+          // console.log('Clicked "JOIN" a game');
 
           // Display the Join Game HTML on the player's screen.
           App.$gameArea.html(App.$templateJoinGame);
@@ -1506,16 +1416,14 @@ jQuery(
 
           // collect data to send to the server
           let data = {
-            gameId: $("#inputGameId")
-              .val()
-              .toUpperCase(),
+            gameId: $("#inputGameId").val().toUpperCase(),
             playerName: $("#inputPlayerName").val() || "Anonymusbob"
           };
 
           // Send the gameId and playerName to the server
           IO.socket.emit("playerJoinsRoom", data);
 
-          // Set the appropriate properties for the current player.
+          // Set the properties for the current player.
           App.myRole = "Player";
           App.myName = data.playerName;
           sessionStorage.setItem("myPlayerName", data.playerName);
@@ -1535,7 +1443,7 @@ jQuery(
             let pieceId = $(e.target).attr("id");
 
             App.Player.selectedPiece(pieceId);
-            // console.log('pieceId', pieceId);
+            // console.log('selected pieceId/color:', pieceId);
           }
         },
 
@@ -2110,10 +2018,9 @@ jQuery(
         // console.log('adjustObjectPositions happening');
         // safe transform values of selected objects:
         let savedTransformProps = {};
+        App.$objects = $('#objects');
         App.$objects.find(".selected").each(function() {
-          let imgId = $(this)
-            .find("img")
-            .attr("id");
+          let imgId = $(this).find("img").attr("id");
 
           let [translateXpx, translateYpx, rotate] = App.getTransformProps(
             $(this)
