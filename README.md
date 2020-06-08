@@ -1,5 +1,6 @@
-# AllThatStuff_v3
+# AllThatStuff
 Multiplayer word association game
+(Version 3 with game lobby)
 
 :cherry_blossom: [play](http://www.allthatstuff.fun/) :banana:
 
