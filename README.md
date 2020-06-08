@@ -15,11 +15,12 @@ https://github.com/InsomniacSabbir/anagrammatix
 ## Technologies
 HTML5, CSS3, JavaScript, jQuery, Socket.IO
 
-<!-- ## Preview
+## Preview
 ### START MENU
-<img src="./public/preview/start_menu.gif" alt="start menu preview animation">
+<!-- <img src="./public/preview/start_menu.gif" alt="start menu preview animation"> -->
+<img src="./public/preview/AllThatStuff_start-menu.png" alt="start menu preview">
 
-### MAIN GAME
+<!-- ### MAIN GAME
 
 BUILDING:
 <img src="./public/preview/my-turn_building.gif" alt="building preview animation">
