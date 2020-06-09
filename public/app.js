@@ -90,9 +90,8 @@ jQuery(
         setTimeout(() => {
           window.alert(`
 ⛔ You got disconnected!
-🔃 Please refresh the page to rejoin the game :)
-
-🖼️ ↕️ ↔️ after refreshing the page you might need to resize your window to make all the objects take the right spots`);
+🔃 Please refresh the page to rejoin the game :)`
+          );
         }, 300);
       },
 
@@ -319,9 +318,12 @@ jQuery(
           // objects do adjust correctly after resizing the window though:
           // ... but only manually. trigger window resize event doesn't work:
           // App.onWindowResize();
-          // $(window).resize();
-          // $(window).trigger('resize');
-          // window.resizeTo(window.innerWidth - 1, window.innerHeight - 1);
+
+          setTimeout(() => {
+            App.onWindowResize();
+          }, 200);
+          // hurray this does the trick!
+          // FIXME: I should probably check, why there is asynch behaviour
 
           // $("#start-menu").addClass("hidden");
           $("#main-game").removeClass("hidden");
@@ -358,7 +360,10 @@ jQuery(
               App.selectedPieceId
             );
             $("#done-btn").removeClass("hidden");
-            $("#skip-icon").removeClass("hidden");
+            let skippedACard = sessionStorage.getItem("skippedACard");
+            if (!skippedACard) {
+              $("#skip-icon").removeClass("hidden");
+            }
 
             App.$message.addClass("bold");
             App.$message[0].innerText = `it's your turn!`;
@@ -559,6 +564,10 @@ jQuery(
 
             $("#skip-icon").removeClass("hidden");
             $("#done-btn").removeClass("hidden");
+
+            // remember if player skipped a card
+            // in case they disconnect/reconnect:
+            sessionStorage.setItem("skippedACard", false);
           }
 
           // first word card:
@@ -788,6 +797,8 @@ jQuery(
 
         // if next turn is my turn:
         if (data.nextPlayer == App.selectedPieceId) {
+          App.itsMyTurn = true;
+
           console.log(`you drew card number ${data.newCard.id}.`);
           console.log(`please build item number ${data.correctAnswer}`);
           $(`.highlight[key=${data.correctAnswer}]`).addClass(
@@ -796,9 +807,12 @@ jQuery(
           $("#done-btn").removeClass("hidden");
           $("#skip-icon").removeClass("hidden");
 
+          // remember if player skipped a card
+          // in case they disconnect/reconnect:
+          sessionStorage.setItem("skippedACard", false);
+
           App.$message[0].innerText = `it's your turn!`;
           App.$message.addClass("bold");
-          App.itsMyTurn = true;
         } else {
           // if next turn is not my turn:
           $("#done-btn").addClass("hidden");
@@ -1181,7 +1195,7 @@ jQuery(
         $("#next-btn").on("click", App.Player.clickedReadyForNextTurn);
 
         // TODO: add a skip message that appears on hover over skip icon:
-        
+
         // $('#skip-icon').hover(
         //   function(){
         //     if (App.itsMyTurn) {
@@ -1623,7 +1637,6 @@ jQuery(
         },
 
         onKeyDown: function(e) {
-          console.log("keydown happened");
           if (e.keyCode == 83) {
             // = "S"
             if (App.uniSound) {
@@ -1854,7 +1867,11 @@ jQuery(
               App.selectedPieceId
             );
             IO.socket.emit("skip card", App.gameId);
+            // players can only skip one card per turn..
             $(this).addClass("hidden");
+            // remember if player skipped a card
+            // in case they disconnect/reconnect:
+            sessionStorage.setItem("skippedACard", true);
           }
         }
 
