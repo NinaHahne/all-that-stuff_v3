@@ -1204,20 +1204,9 @@ jQuery(
         $("#help-btn").on("click", App.Player.toggleHelp);
         $("#next-btn").on("click", App.Player.clickedReadyForNextTurn);
 
-        // TODO: add a skip message that appears on hover over skip icon:
+        // show/hide "skip this card" message on hover over skip icon:
+        $('#skip-icon').hover(App.Player.showSkipMsg, App.Player.hideSkipMsg);
 
-        // $('#skip-icon').hover(
-        //   function(){
-        //     if (App.itsMyTurn) {
-        //       $('#skip-msg').removeClass('hidden');
-        //     }
-        //   },
-        //   function(){
-        //     if (App.itsMyTurn) {
-        //       $('#skip-msg').addClass('hidden');
-        //     }
-        //   }
-        // );
         $("#skip-icon").on("click", App.Player.clickedSkipCard);
 
         // touch events:
@@ -1753,6 +1742,18 @@ jQuery(
             App.$instructions.removeClass("hidden");
           } else {
             App.$instructions.addClass("hidden");
+          }
+        },
+
+        showSkipMsg: function(){
+          if (App.itsMyTurn) {
+            $('#skip-msg').removeClass('hidden');
+          }
+        },
+
+        hideSkipMsg: function(){
+          if (App.itsMyTurn) {
+            $('#skip-msg').addClass('hidden');
           }
         },
 
