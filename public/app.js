@@ -214,7 +214,6 @@ jQuery(
 
         // if I am the rejoining player:
         if (data.selectedPieceId == mySelectedPieceId) {
-          // TODO: take care of "App.myGuess" ?
           sessionStorage.setItem("mySocketId", data.socketId);
           App.mySocketId = data.socketId;
           App.myRole = "Player";
@@ -224,6 +223,10 @@ jQuery(
           App.gameId = sessionStorage.getItem("myGameId");
           App.myName = sessionStorage.getItem("myPlayerName");
           App.gameStarted = true;
+
+          if (data.guessedAnswers[App.selectedPieceId]) {
+            App.myGuess = data.guessedAnswers[App.selectedPieceId];
+          }
 
           // Fill the game screen with the appropriate HTML
           App.$gameArea.html(App.$templateMainGame);
@@ -361,7 +364,12 @@ jQuery(
             );
             $("#done-btn").removeClass("hidden");
             let skippedACard = sessionStorage.getItem("skippedACard");
-            if (!skippedACard) {
+            console.log('skippedACard:', skippedACard);
+            if (skippedACard) {
+              console.log('hiding skip icon');
+              $("#skip-icon").addClass("hidden");
+            } else {
+              console.log('displaying skip icon');
               $("#skip-icon").removeClass("hidden");
             }
 
@@ -567,7 +575,8 @@ jQuery(
 
             // remember if player skipped a card
             // in case they disconnect/reconnect:
-            sessionStorage.setItem("skippedACard", false);
+            // sessionStorage.setItem("skippedACard", false);
+            sessionStorage.removeItem("skippedACard");
           }
 
           // first word card:
@@ -809,7 +818,8 @@ jQuery(
 
           // remember if player skipped a card
           // in case they disconnect/reconnect:
-          sessionStorage.setItem("skippedACard", false);
+          // sessionStorage.setItem("skippedACard", false);
+          sessionStorage.removeItem("skippedACard");
 
           App.$message[0].innerText = `it's your turn!`;
           App.$message.addClass("bold");
@@ -1706,9 +1716,7 @@ jQuery(
 
           if (!App.itsMyTurn && !App.myGuess && App.doneBtnPressed) {
             App.myGuess = e.currentTarget.getAttribute("key");
-            // sessionStorage.setItem("myGuess", myGuess);
-
-            console.log("you clicked on: ", App.myGuess);
+            // console.log("you clicked on: ", App.myGuess);
             $(`.highlight[key=${App.myGuess}]`).addClass(
               `${App.selectedPieceId}`
             );
@@ -1871,7 +1879,7 @@ jQuery(
             $(this).addClass("hidden");
             // remember if player skipped a card
             // in case they disconnect/reconnect:
-            sessionStorage.setItem("skippedACard", true);
+            sessionStorage.setItem("skippedACard", "true");
           }
         }
 
