@@ -34,7 +34,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: 50vw;
+  min-height: 48vw;
   width: 100%;
   font-size: 1.6vw;
   font-family: "Life Savers", cursive;
@@ -102,6 +102,10 @@ button:focus {
   font-size: 2.2vw;
 }
 
+#startGame {
+  font-size: 1.9vw;
+}
+
 #done-btn {
   position: absolute;
   border-radius: 0.4vw 1vw 0.4vw 1vw;
@@ -129,12 +133,13 @@ button:focus {
    ****************************** */
 
 .stuff-logo {
-  padding: 0vw 1.2vw 1.2vw;
+  padding: 0vw 1.2vw 0.6vw;
   text-align: center;
 }
 
 .stuff-logo.host {
-  padding: 1.2vw;
+  /* padding: 1.2vw; */
+  padding: 1.2vw 1.2vw 0.6vw 1.2vw;
 }
 
 .stuff-logo h1 {
@@ -151,14 +156,15 @@ button:focus {
   font-weight: 700;
   margin-top: 0;
   margin-bottom: 0;
+  transform: translateX(0.6vw);
 }
 
 .stuff-logo.bigger h1 {
-  font-size: 10.2vw;
+  font-size: 9.8vw;
 }
 
 .stuff-logo.bigger h2 {
-  font-size: 6.4vw;
+  font-size: 6.2vw;
 }
 
 /* §§ ***************************
@@ -307,6 +313,7 @@ input:focus {
   flex-direction: column;
   justify-content: center;
   /* padding-top: 1.2vw; */
+  padding-bottom: 2.6vw;
 }
 
 #main-game {
@@ -735,14 +742,14 @@ input:focus {
 }
 
 .info {
-  font-size: 2.6vw;
+  font-size: 2.4vw;
 }
 
 .infoBig {
-  font-size: 3.7vw;
+  font-size: 3.4vw;
   /* font-size: 2.8vw; */
   font-weight: 800;
-  margin-bottom: 3%;
+  margin-bottom: 1.5vw;
   color: blue;
 }
 
@@ -769,15 +776,19 @@ input:focus {
 
 #welcomeInstruction div {
   /* margin-top: 0; */
-  font-size: 2vw;
+  font-size: 1.9vw;
   font-weight: 700;
   animation: floatColorChange 16s infinite linear;
 }
 
 .waiting-msg {
-  font-size: 2vw;
+  font-size: 1.7vw;
   text-align: center;
   animation: pulseMessage 2s infinite linear;
+}
+
+#start-menu.host .waiting-msg {
+  font-size: 1.9vw;
 }
 
 /* #msg-or-btn-box .waiting-msg {
@@ -795,6 +806,7 @@ input:focus {
   align-items: center;
   justify-content: center;
   /* flex-grow: 1; */
+  font-size: 1.8vw;
 }
 
 @keyframes floatColorChange {
