@@ -769,21 +769,21 @@ function onDisconnect() {
 function onRejoinRequest(data) {
   // one player got disconnected and needs all the info back to rejoin the game.
   let socket = this;
-  console.log('rejoining socketId:', socket.id);
+  // console.log('rejoining socketId:', socket.id);
   let game = gameStates[data.gameId];
 
   if (game && game.gameStarted) {
     // Join the Room and wait for the players
     socket.join(data.gameId);
     game.selectedPieces.push(data.selectedPieceId);
-    console.log('selectedPieces after rejoining:', game.selectedPieces);
+    // console.log('selectedPieces after rejoining:', game.selectedPieces);
     // NOTE: depending on the disconnection (intenet failure / page refresh) there might be double entries in the selected pieces array (because they don't get deleted on "disconnect").. so:
     // NOTE: update: the selected piece WILL get deleted on internet disconnection, BUT: in this case it happens a long time after the same player rejoined the game already.. how do I solve this problem? the rejoining player shouldn't get deleted..
     game.selectedPieces = [...new Set(game.selectedPieces)];
-    console.log('selectedPieces after filtering double entries:', game.selectedPieces);
+    // console.log('selectedPieces after filtering double entries:', game.selectedPieces);
     // now the player piece order is destroyed.. so after someone disconnects/reconnets, resort in rainbow pattern:
     game.selectedPieces.sort(rainbowSort);
-    console.log('selectedPieces after rainbowSort:', game.selectedPieces);
+    // console.log('selectedPieces after rainbowSort:', game.selectedPieces);
 
     game.joinedPlayers[socket.id] = data.selectedPieceId;
     game.playerNames[data.selectedPieceId] = data.playerName;
@@ -802,9 +802,9 @@ function addPlayerMidGame(data) {
     playerName: data.playerName,
     playerPointsTotal: game.playerPointsTotal,
     gameMaster: game.gameMaster,
-    selectedPieces: gameStates[data.gameId].selectedPieces,
-    playerNames: gameStates[data.gameId].playerNames,
-    chosenLanguage: gameStates[data.gameId].chosenLanguage,
+    selectedPieces: game.selectedPieces,
+    playerNames: game.playerNames,
+    chosenLanguage: game.chosenLanguage,
     activePlayer: game.currentPlayer,
     numberOfTurnsForThisGame: game.numberOfTurnsForThisGame,
     numberOfTurnsLeft: game.numberOfTurnsLeft,
