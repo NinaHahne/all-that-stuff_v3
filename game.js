@@ -219,11 +219,15 @@ function welcomePlayer(gameId) {
 }
 
 function selectedPiece(data) {
-  if (data.selectedPieceId) {
+  let game = gameStates[data.gameId];
+
+  // in case two players choose the same piece at almost the same time:
+  // check if the requested piece add is not already chosen by another player:
+  if (data.selectedPieceId && !game.selectedPieces.includes(data.selectedPieceId)) {
     console.log(
-      `${data.playerName} joined the game with the color ${data.selectedPieceId}`
+      `${data.playerName} joined the game ${data.gameId} with the color ${data.selectedPieceId}`
     );
-    let game = gameStates[data.gameId];
+
     game.selectedPieces.push(data.selectedPieceId);
     // this line makes sure, that selectedPieces (piece ids of joined players)
     // is always in rainbow order:

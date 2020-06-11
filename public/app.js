@@ -184,7 +184,12 @@ jQuery(
           // App.doTextFit(".player-name");
 
           // if it was me, selecting a piece:
-          if (data.selectedPieceId == App.selectedPieceId) {
+          if (data.socketId == App.mySocketId) {
+            App.selectedPieceId = data.selectedPieceId;
+            sessionStorage.setItem("mySelectedPieceId", data.selectedPieceId);
+            // hide "please pick a piece" message:
+            $("#welcomeInstruction").addClass("hidden");
+
             $piece.addClass("myPiece");
 
             // if I'm the game master:
@@ -1491,12 +1496,7 @@ jQuery(
         selectedPiece: function(pieceId) {
           // console.log('myName: ', App.myName);
           if (App.myName && pieceId) {
-            App.selectedPieceId = pieceId;
-            sessionStorage.setItem("mySelectedPieceId", pieceId);
-            $("#welcomeInstruction").addClass("hidden");
 
-            // TODO: what happens, if two players pick the same piece at
-            // the same time? check in the server before claiming the piece
             IO.socket.emit("selected piece", {
               gameId: App.gameId,
               socketId: App.mySocketId,
