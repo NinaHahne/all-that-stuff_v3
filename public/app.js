@@ -153,7 +153,7 @@ jQuery(
         for (let i = 0; i < players.length; i++) {
           let $piece = $("#start-menu").find("#" + players[i]);
           let $playerName = $piece.find(".player-name");
-          $playerName[0].innerText = App.playerNames[players[i]];
+          $playerName.text(App.playerNames[players[i]]);
           $piece.addClass("selectedPlayerPiece");
           App.adjustNameFontSize($piece, $playerName[0].innerText);
 
@@ -179,7 +179,7 @@ jQuery(
           }
 
           let $playerName = $piece.find(".player-name");
-          $playerName[0].innerText = data.playerName;
+          $playerName.text(data.playerName);
           App.adjustNameFontSize($piece, data.playerName);
           // App.doTextFit(".player-name");
 
@@ -270,7 +270,7 @@ jQuery(
             let $playerName = $piece.find(".player-name");
             let $crown = $piece.find(".crown");
 
-            $playerName[0].innerText = App.playerNames[players[i]];
+            $playerName.text(App.playerNames[players[i]]);
             $piece.addClass("selectedPlayerPiece");
             $piece.removeClass("myTurn");
             App.adjustNameFontSize($piece, $playerName[0].innerText);
@@ -283,7 +283,7 @@ jQuery(
 
           App.numberOfTurns = data.numberOfTurnsForThisGame;
           let currentTurn = App.numberOfTurns - data.numberOfTurnsLeft + 1;
-          App.$rounds[0].innerText = `${currentTurn}/${App.numberOfTurns}`;
+          App.$rounds.text(`${currentTurn}/${App.numberOfTurns}`);
 
           App.$message.removeClass("hidden");
 
@@ -342,21 +342,21 @@ jQuery(
 
             App.$message.removeClass("bold");
             App.$message.removeClass("hidden");
-            App.$message[0].innerText = "...under construction...";
+            App.$message.text("...under construction...");
             App.$message.removeClass("no-animation");
 
             $("#done-btn").addClass("hidden");
 
             if (App.doneBtnPressed) {
               App.$message.addClass("bold");
-              App.$message[0].innerText = `what's all that stuff?`;
+              App.$message.text(`what's all that stuff?`);
               App.$message.addClass("no-animation");
             }
 
             if (App.everyoneGuessed) {
               App.$message.removeClass("no-animation");
               App.$message.addClass("bold");
-              App.$message[0].innerText = "discussion time!";
+              App.$message.text("discussion time!");
             }
           } else if (data.activePlayer == App.selectedPieceId) {
             // if it is my turn:
@@ -379,18 +379,18 @@ jQuery(
             }
 
             App.$message.addClass("bold");
-            App.$message[0].innerText = `it's your turn!`;
+            App.$message.text(`it's your turn!`);
 
             if (App.doneBtnPressed) {
               App.$message.removeClass("bold");
-              App.$message[0].innerText = `done!`;
+              App.$message.text(`done!`);
               App.$message.addClass("no-animation");
             }
 
             if (App.everyoneGuessed) {
               App.$message.removeClass("no-animation");
               App.$message.addClass("bold");
-              App.$message[0].innerText = "discussion time!";
+              App.$message.text("discussion time!");
               $("#done-btn").addClass("hidden");
             }
           }
@@ -427,7 +427,7 @@ jQuery(
         $piece.addClass("selectedPlayerPiece");
 
         let $playerName = $piece.find(".player-name");
-        $playerName[0].innerText = data.playerName;
+        $playerName.text(data.playerName);
 
         App.adjustNameFontSize($piece, data.playerName);
       },
@@ -443,7 +443,6 @@ jQuery(
           // if the game has not started yet (still in the start menu), also reset the player name to "?".
           if (!App.gameStarted) {
             let $playerName = $piece.find(".player-name");
-            // $playerName[0].innerText = "?";
             $playerName.text("?");
             $piece.removeClass("name4 name6 name8 name10 name12");
           }
@@ -542,13 +541,13 @@ jQuery(
 
           App.numberOfTurns = data.numberOfTurnsLeft;
           let currentTurn = App.numberOfTurns - data.numberOfTurnsLeft + 1;
-          App.$rounds[0].innerText = `${currentTurn}/${App.numberOfTurns}`;
+          App.$rounds.text(`${currentTurn}/${App.numberOfTurns}`);
 
           App.$joinedPlayersContainer
             .find(".player-points")
             .removeClass("hidden");
           App.$joinedPlayersContainer.find(".player-points").each(function() {
-            $(this)[0].innerText = "0";
+            $(this).text("0");
           });
 
           //game starts with a random start player:
@@ -559,7 +558,7 @@ jQuery(
 
             App.$message.removeClass("bold");
             App.$message.removeClass("no-animation");
-            App.$message[0].innerText = "...under construction...";
+            App.$message.text("...under construction...");
 
             $("#done-btn").addClass("hidden");
 
@@ -573,7 +572,7 @@ jQuery(
             );
 
             App.$message.addClass("bold");
-            App.$message[0].innerText = `it's your turn!`;
+            App.$message.text(`it's your turn!`);
 
             $("#skip-icon").removeClass("hidden");
             $("#done-btn").removeClass("hidden");
@@ -694,16 +693,18 @@ jQuery(
         if (!App.itsMyTurn) {
           // $objects[0].innerHTML = data.activeObjects;
           App.$message.addClass("bold");
-          App.$message[0].innerText = `what's all that stuff?`;
+          App.$message.text(`what's all that stuff?`);
 
           // In case I resized my window during the building, the position of objects in the construction area could be a bit off on my screen. so to make sure, I see exactly what the builder built (at least at the moment when they click "done"), get coordinates of selected objects again:
           App.adjustSelectedObjectPositions(
             data.activeObjects,
             data.buildersViewportWidth
           );
+          // TODO: maybe trigger onWindowResize() just like after rejoining?
+          
         } else if (App.itsMyTurn) {
           App.$message.removeClass("bold");
-          App.$message[0].innerText = `done!`;
+          App.$message.text(`done!`);
         }
         App.$message.addClass("no-animation");
         App.doneBtnPressed = true;
@@ -746,7 +747,7 @@ jQuery(
                 }
                 App.$message.removeClass("no-animation");
                 App.$message.addClass("bold");
-                App.$message[0].innerText = "discussion time!";
+                App.$message.text("discussion time!");
               }, 1000); // time before change to next turn / next-button shows up
             }, 1500); // time before addPoints
           }, 1500); // time before showCorrectAnswer
@@ -807,7 +808,7 @@ jQuery(
 
         // update number of turns left:
         let currentTurn = App.numberOfTurns - data.numberOfTurnsLeft + 1;
-        App.$rounds[0].innerText = `${currentTurn}/${App.numberOfTurns}`;
+        App.$rounds.text(`${currentTurn}/${App.numberOfTurns}`);
 
         // if next turn is my turn:
         if (data.nextPlayer == App.selectedPieceId) {
@@ -826,13 +827,13 @@ jQuery(
           // sessionStorage.setItem("skippedACard", false);
           sessionStorage.removeItem("skippedACard");
 
-          App.$message[0].innerText = `it's your turn!`;
+          App.$message.text(`it's your turn!`);
           App.$message.addClass("bold");
         } else {
           // if next turn is not my turn:
           $("#done-btn").addClass("hidden");
           App.$message.removeClass("bold");
-          App.$message[0].innerText = "...under construction...";
+          App.$message.text("...under construction...");
           App.itsMyTurn = false;
         }
 
@@ -2432,7 +2433,7 @@ jQuery(
           // console.log(`adding points for player ${player}`);
           let $piece = $("#" + player);
           let $playerPoints = $piece.find(".player-points");
-          $playerPoints[0].innerText = data.playerPointsTotal[player];
+          $playerPoints.text(data.playerPointsTotal[player]);
           App.flashPoints($playerPoints);
 
           if (player == App.selectedPieceId) {
