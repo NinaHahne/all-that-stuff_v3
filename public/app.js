@@ -1217,7 +1217,6 @@ jQuery(
 
         // show/hide "skip this card" message on hover over skip icon:
         $('#skip-icon').hover(App.Player.showSkipMsg, App.Player.hideSkipMsg);
-        // TODO: put skip icon img in a div for better clicking experience
 
         $("#skip-icon").on("click", App.Player.clickedSkipCard);
 
