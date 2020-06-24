@@ -5,7 +5,6 @@ jQuery(
     /**
      * All the code relevant to Socket.IO is collected in the IO namespace.
      *
-     * @type {{init: Function, bindEvents: Function, onConnected: Function, onNewGameCreated: Function, onPlayerJoinedRoom: Function, onBeginNewGame: Function, onNewWordData: Function, hostCheckAnswer: Function, gameOver: Function, errorMessage: Function}}
      */
     var IO = {
       /**
@@ -83,6 +82,7 @@ jQuery(
           });
         }
         // TODO: if I was the host of a game before I got disconnected:
+        // get data for host screen..
       },
 
       onDisconnect: function() {
@@ -627,7 +627,11 @@ jQuery(
             App.selectedPieceId
           );
         }
-        // TODO: play a card skipping sound
+
+        if (!App.muted) {
+          // play a card skipping sound:
+          App.paperCrumple.play();
+        }
 
         // backup new word cards (including "empty guesses"):
         App.backupGuesses();
@@ -701,7 +705,7 @@ jQuery(
             data.buildersViewportWidth
           );
           // TODO: maybe trigger onWindowResize() just like after rejoining?
-          
+
         } else if (App.itsMyTurn) {
           App.$message.removeClass("bold");
           App.$message.text(`done!`);
@@ -986,6 +990,7 @@ jQuery(
         );
         App.startGong = new Audio("./sounds/56240__q-k__gong-center-clear.wav");
         App.doneGong = new Audio("./sounds/434627__dr-macak__ding.wav");
+        App.paperCrumple = new Audio("./sounds/508597__drooler__crumple-06.ogg");
         App.successJingle = new Audio(
           "./sounds/270404__littlerobotsoundfactory__jingle-achievement-00.wav"
         );
@@ -1212,6 +1217,7 @@ jQuery(
 
         // show/hide "skip this card" message on hover over skip icon:
         $('#skip-icon').hover(App.Player.showSkipMsg, App.Player.hideSkipMsg);
+        // TODO: put skip icon img in a div for better clicking experience
 
         $("#skip-icon").on("click", App.Player.clickedSkipCard);
 
