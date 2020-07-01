@@ -7,6 +7,25 @@ const app = express();
 // Import the AllthatStuff game file.
 const game = require("./game");
 
+// connect MongoDB Atlas
+const mongoose = require('mongoose');
+
+let secrets;
+if (process.env.NODE_ENV == "production") {
+  secrets = process.env; // in prod the secrets are environment variables
+} else {
+  secrets = require("./secrets"); // in dev they are in secrets.json which is listed in .gitignore
+}
+
+mongoose.connect(secrets.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+  .then(() => {
+    console.log('MongoDB Connected...');
+  })
+  .catch(err => console.log(err));
+
 // Serve static html, js, css, and image files from the 'public' directory:
 app.use(express.static("./public"));
 
