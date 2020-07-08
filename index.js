@@ -1,6 +1,8 @@
 // Import the Express module
 const express = require("express");
 
+const hb = require("express-handlebars");
+
 // Create a new instance of Express
 const app = express();
 
@@ -9,6 +11,8 @@ const game = require("./game");
 
 // connect MongoDB Atlas
 const mongoose = require('mongoose');
+
+const gameModel = require('./models/games');
 
 let secrets;
 if (process.env.NODE_ENV == "production") {
@@ -26,11 +30,57 @@ mongoose.connect(secrets.MONGO_URI, {
   })
   .catch(err => console.log(err));
 
+// this configures express to use express-handlebars:
+app.engine("handlebars", hb());
+app.set("view engine", "handlebars");
+
 // Serve static html, js, css, and image files from the 'public' directory:
 app.use(express.static("./public"));
 
 app.get("/", function(req, res) {
   res.sendFile(__dirname + "/public/index.html");
+});
+
+// app.get("/games", async (req, res) => {
+//   // res.sendFile(__dirname + "/public/games.html");
+//   // res.send('<h1>here you can see a list of all games played so far...</h1>');
+
+//   // TODO: create and import gameModel file and create handlebars for /games route
+
+//   const allGames = await gameModel.find({});
+
+//   try {
+//     console.log(allGames);
+//     res.render("allgames", {
+//       layout: "main",
+//       allGames
+//     });
+
+//   } catch (err) {
+//     console.log("err in allGames in /games: ", err);
+//     res.status(500).send(err);
+//   }
+
+// });
+
+app.get('/games', function(req, res) {
+  
+  gameModel.find({}, {}, function(err, results) {
+
+    if (err) {
+      console.log(err);
+      res.send([]);
+      return;
+    }
+
+    console.log(results);
+    res.send(results);
+    
+    // res.render("allgames", {
+    //   layout: "main",
+    //   allGames: results
+    // });
+  });
 });
 
 app.get("/preview", function(req, res) {
