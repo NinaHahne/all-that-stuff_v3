@@ -10,9 +10,9 @@ const app = express();
 const game = require("./game");
 
 // connect MongoDB Atlas
-const mongoose = require('mongoose');
-
-const gameModel = require('./models/games');
+// TODO: 
+// const mongoose = require('mongoose');
+// const gameModel = require('./models/games');
 
 let secrets;
 if (process.env.NODE_ENV == "production") {
@@ -21,14 +21,15 @@ if (process.env.NODE_ENV == "production") {
   secrets = require("./secrets"); // in dev they are in secrets.json which is listed in .gitignore
 }
 
-mongoose.connect(secrets.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-  .then(() => {
-    console.log('MongoDB Connected...');
-  })
-  .catch(err => console.log(err));
+// TODO:
+// mongoose.connect(secrets.MONGO_URI, {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true
+// })
+//   .then(() => {
+//     console.log('MongoDB Connected...');
+//   })
+//   .catch(err => console.log(err));
 
 // this configures express to use express-handlebars:
 app.engine("handlebars", hb());
@@ -63,29 +64,35 @@ app.get("/", function(req, res) {
 
 // });
 
-app.get('/games', function(req, res) {
+// TODO: make this work:
+// app.get('/games', function(req, res) {
   
-  gameModel.find({}, {}, function(err, results) {
+//   gameModel.find({}, {}, function(err, results) {
 
-    if (err) {
-      console.log(err);
-      res.send([]);
-      return;
-    }
+//     if (err) {
+//       console.log(err);
+//       res.send([]);
+//       return;
+//     }
 
-    console.log(results);
-    res.send(results);
+//     console.log(results);
+//     res.send(results);
     
-    // res.render("allgames", {
-    //   layout: "main",
-    //   allGames: results
-    // });
-  });
-});
+//     // res.render("allgames", {
+//     //   layout: "main",
+//     //   allGames: results
+//     // });
+//   });
+// });
 
 app.get("/preview", function(req, res) {
   res.sendFile(__dirname + "/public/preview/AllThatStuff_start-menu.png");
 });
+
+// TODO:
+// const games = require("./controllers/controller.js");
+// Create a new game entry
+// app.post("/", games.create);
 
 // ------------------------------------------
 // // // Create a Node.js based http server on port 8080

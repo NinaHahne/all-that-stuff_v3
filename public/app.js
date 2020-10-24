@@ -2,6 +2,10 @@ jQuery(
   (function($) {
     // "use strict";
 
+    // FIXME:
+    // import axios from "axios";
+    // Uncaught SyntaxError: Cannot use import statement outside a module
+
     /**
      * All the code relevant to Socket.IO is collected in the IO namespace.
      *
@@ -896,6 +900,7 @@ jQuery(
     };
 
     var App = {
+      // TODO: disable testing mode before deploying
       testingMode: true,
       // gameId, identical to the ID of the Socket.IO Room
       // used for the players and host to communicate
@@ -1316,26 +1321,8 @@ jQuery(
           App.mySocketId = data.mySocketId;
           App.myRole = "Host";
           App.Host.numPlayersInRoom = 0;
-
-          // App.Host.displayNewGameScreen();
           App.Host.displayStartMenu();
-          // console.log("Game started with ID: " + App.gameId + ' by host: ' + App.mySocketId);
         },
-
-        // /**
-        //  * Show the Host screen containing the game URL and unique game ID
-        //  */
-        // displayNewGameScreen: function() {
-        //   // Fill the game screen with the appropriate HTML
-        //   App.$gameArea.html(App.$templateNewGame);
-        //
-        //   // Display the URL on screen
-        //   $("#gameURL").text(window.location.href);
-        //   // App.doTextFit("#gameURL");
-        //
-        //   // Show the gameId / room id on screen
-        //   $("#spanNewGameCode").text(App.gameId);
-        // },
 
         /**
          * Show the Host start menu screen containing the game URL and game ID
@@ -1367,14 +1354,9 @@ jQuery(
         updateWaitingScreen: function(data) {
           // If this is a restarted game, show the screen.
           if (App.isNewGame) {
-            // App.Host.displayNewGameScreen();
             App.Host.displayStartMenu();
           }
-          // Update host screen
-          // $("#playersWaiting")
-          //   .append("<p/>")
-          //   .text("Player " + data.playerName + " joined the game.");
-
+          // Update host screen:
           let message = `<p>${data.playerName} joined the room.</p>`;
           $("#playersWaiting").append(message);
 
@@ -1383,45 +1365,13 @@ jQuery(
 
           // Increment the number of players in the room
           App.Host.numPlayersInRoom += 1;
-          // currently not using this info..
-
+          // TODO: currently not using this info..
         }
-
-        // /**
-        //  * Show the countdown screen
-        //  */
-        // gameCountdown: function() {
-        //   // Prepare the game screen with new HTML
-        //   App.$gameArea.html(App.$templateHostGame);
-        //   // App.doTextFit("#hostWord");
-        //
-        //   // Begin the on-screen countdown timer
-        //   var $secondsLeft = $("#hostWord");
-        //   App.countDown($secondsLeft, 5, function() {
-        //     IO.socket.emit("hostCountdownFinished", App.gameId);
-        //   });
-        //
-        //   // Display the players' names on screen
-        //   $("#player1Score")
-        //     .find(".playerName")
-        //     .html(App.Host.connectedPlayers[0].playerName);
-        //
-        //   $("#player2Score")
-        //     .find(".playerName")
-        //     .html(App.Host.connectedPlayers[1].playerName);
-        //
-        //   // Set the Score section on screen to 0 for each player.
-        //   $("#player1Score")
-        //     .find(".score")
-        //     .attr("id", App.Host.connectedPlayers[0].mySocketId);
-        //   $("#player2Score")
-        //     .find(".score")
-        //     .attr("id", App.Host.connectedPlayers[1].mySocketId);
-        // },
 
         // /**
         //  * A player hit the 'Start Again' button after the end of a game.
         //  */
+        // TODO: restart game:
         // restartGame: function() {
         //   App.$gameArea.html(App.$templateNewGame);
         //   $("#spanNewGameCode").text(App.gameId);
@@ -1808,39 +1758,6 @@ jQuery(
           App.setObjectPositionsAbsolute();
         },
 
-        // /**
-        //  *  Click handler for the Player hitting a word in the word list.
-        //  */
-        // onPlayerAnswerClick: function() {
-        //   // console.log('Clicked Answer Button');
-        //   var $btn = $(this); // the tapped button
-        //   var answer = $btn.val(); // The tapped word
-        //
-        //   // Send the player info and tapped word to the server so
-        //   // the host can check the answer.
-        //   var data = {
-        //     gameId: App.gameId,
-        //     playerId: App.mySocketId,
-        //     answer: answer,
-        //     round: App.currentRound
-        //   };
-        //   IO.socket.emit("playerAnswer", data);
-        // },
-
-        // /**
-        //  *  Click handler for the "Start Again" button that appears
-        //  *  when a game is over.
-        //  */
-        // onPlayerRestart: function() {
-        //   var data = {
-        //     gameId: App.gameId,
-        //     playerName: App.myName
-        //   };
-        //   IO.socket.emit("playerRestart", data);
-        //   App.currentRound = 0;
-        //   $("#gameArea").html("<h3>Waiting on host to start new game.</h3>");
-        // },
-
         /**
          * Display the start menu or update it, when new player joins:
          * @param data
@@ -1889,22 +1806,6 @@ jQuery(
             sessionStorage.setItem("skippedACard", "true");
           }
         }
-
-        //
-        // /**
-        //  * Show the "Game Over" screen.
-        //  */
-        // endGame: function() {
-        //   $("#gameArea")
-        //     .html('<div class="gameOver">Game Over!</div>')
-        //     .append(
-        //       // Create a button to start a new game.
-        //       $("<button>Start Again</button>")
-        //         .attr("id", "btnPlayerRestart")
-        //         .addClass("btn")
-        //         .addClass("btnGameOver")
-        //     );
-        // }
       },
 
       /* *****************************
@@ -2067,6 +1968,20 @@ jQuery(
           activeObjects: activeObjectsHTML,
           queuedObjects: queuedObjectsHTML
         });
+
+        //   TODO: create new game entry in the database:
+        const gameData = {
+            gameId: App.gameId,
+            players: App.playerNames
+        }
+        // axios
+        //     .post("/", gameData)
+        //     .then(() => {
+        //         console.log('game entry successfully created!');
+        //     })
+        //     .catch(err => {
+        //         console.log("err in create game: ", err);
+        //     });
 
         App.setObjectPositionsAbsolute();
       },
