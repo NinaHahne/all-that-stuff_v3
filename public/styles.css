@@ -562,7 +562,7 @@ input:focus {
 }
 
 .player-name {
-  /* click through the "?" to the underlying player piece: */
+  /* click through the player-name to the underlying player piece: */
   pointer-events: none;
 }
 
@@ -751,12 +751,14 @@ input:focus {
   font-weight: 800;
   margin-bottom: 1.5vw;
   color: blue;
+  user-select: text;
 }
 
 .gameId {
   font-size: 5.2vw;
   font-weight: 800;
   color: blue;
+  user-select: text;
 }
 
 #welcomePlayer {
