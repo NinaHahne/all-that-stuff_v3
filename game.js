@@ -13,9 +13,9 @@ const gameStates = {};
 const logMessage = (message) => {
   console.log(message);
   // TODO: how can I look at this playedgames.log file in heroku?
-  let stream = fs.createWriteStream("playedgames.log", {flags:'a'});
-  stream.write(message);
-  stream.end();
+  // let stream = fs.createWriteStream("playedgames.log", {flags:'a'});
+  // stream.write(message);
+  // stream.end();
 }
 /**
  * This function is called by index.js to initialize a new game instance.
