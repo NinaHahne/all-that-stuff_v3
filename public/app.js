@@ -901,7 +901,7 @@ jQuery(
 
     var App = {
       // TODO: disable testing mode before deploying
-      testingMode: true,
+      testingMode: false,
       // gameId, identical to the ID of the Socket.IO Room
       // used for the players and host to communicate
       gameId: "",
