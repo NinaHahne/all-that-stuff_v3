@@ -5,8 +5,6 @@ const cardsDE = require("./cards_de.json");
 
 // for writing server-logs:
 const fs = require('fs');
-// const myPath = __dirname;
-// console.log("myPath: ", myPath);
 
 var io;
 var gameSocket;
@@ -14,9 +12,10 @@ const gameStates = {};
 
 const logMessage = (message) => {
   console.log(message);
-  let stream = fs.createWriteStream("playedgames.log", {flags:'a'});
-  stream.write(message);
-  stream.end();
+  // TODO: how can I look at this playedgames.log file in heroku?
+  // let stream = fs.createWriteStream("playedgames.log", {flags:'a'});
+  // stream.write(message);
+  // stream.end();
 }
 /**
  * This function is called by index.js to initialize a new game instance.
@@ -167,7 +166,7 @@ function playerJoinsRoom(data) {
 
     // Join the room
     socket.join(gameId);
-    console.log('Player ' + data.playerName + ' joining game room: ' + gameId );
+    // console.log('Player ' + data.playerName + ' joining game room: ' + gameId);
 
     // Emit an event notifying the clients that the player has joined the room.
     io.sockets.in(gameId).emit("playerJoinedRoom", data);
@@ -199,9 +198,9 @@ function selectedPiece(data) {
   // in case two players choose the same piece at almost the same time:
   // check if the requested piece add is not already chosen by another player:
   if (data.selectedPieceId && !game.selectedPieces.includes(data.selectedPieceId)) {
-    console.log(
-      `${data.playerName} joined the game ${data.gameId} with the color ${data.selectedPieceId}`
-    );
+    // console.log(
+    //   `Player '${data.playerName}' joined the game ${data.gameId} with the color ${data.selectedPieceId}.`
+    // );
 
     game.selectedPieces.push(data.selectedPieceId);
     // this line makes sure, that selectedPieces (piece ids of joined players)
@@ -246,7 +245,7 @@ function gameStarted(data) {
   // this line makes sure, that selectedPieces (joined players) is in the correct order, like the player pieces are rendered (in a beautiful rainbow order):
   // selectedPieces = data.joinedPlayerIds;
   game.selectedPieces.sort(rainbowSort);
-  console.log("joined players at game start: ", game.selectedPieces);
+  // console.log("joined players at game start: ", game.selectedPieces);
 
   // set number of turns:
   if (game.selectedPieces.length == 3 || game.selectedPieces.length == 5) {
@@ -262,10 +261,10 @@ function gameStarted(data) {
   }
   game.numberOfTurnsForThisGame = game.numberOfTurnsLeft;
 
-  console.log(
-    `${game.selectedPieces.length} players joined the game.
-    Each player will be the builder ${game.numberOfTurnsLeft / game.selectedPieces.length} times!`
-  );
+  // console.log(
+  //   `${game.selectedPieces.length} players joined the game.
+  //   Each player will be the builder ${game.numberOfTurnsLeft / game.selectedPieces.length} times!`
+  // );
 
   game.discardPile = game.cards;
   // discard pile gets shuffled and builds the new stuffCards pile:
@@ -473,7 +472,7 @@ function endGame(gameId) {
     return b.points - a.points;
   });
   
-  console.log("game over!");
+  // console.log("game over!");
   io.sockets.in(gameId).emit("game ends", {
     joinedPlayersHTML: game.joinedPlayersHTML,
     rankingArray: ranking
@@ -538,7 +537,7 @@ function getNextPlayer(gameId, pieceId) {
     }
   } else {
     nextPlayer = "";
-    console.log('there is no other player left to get the next one..');
+    // console.log('there is no other player left to get the next one..');
   }
   return nextPlayer;
 }
@@ -604,7 +603,8 @@ function randomNumber(min, max) {
 
 function onDisconnect() {
   let socket = this;
-  console.log(`socket with the id ${socket.id} is now disconnected`);
+  // console.log(`socket with the id ${socket.id} is now disconnected`);
+
   // NOTE: for some reason, this event only fires, when the browser is refreshed; not if it just lost internet connection? --> seems to be delayed, so players will be removed after disconnecting after they actually rejoined :(
 
   let myGameId;
@@ -612,10 +612,6 @@ function onDisconnect() {
   // check every open game, if the disconnected socket was a joined player:
   for (let gameId in gameStates) {
     let game = gameStates[gameId];
-    // console.log(`joinedPlayers in ${gameId}:`);
-    // for (var prop in game.joinedPlayers) {
-    //   console.log(prop, game.joinedPlayers[prop]);
-    // }
     if (game.joinedPlayers && Object.keys(game.joinedPlayers).length > 0) {
       let socketIdsArray = Object.keys(game.joinedPlayers);
       if (socketIdsArray.includes(socket.id)) {
@@ -653,7 +649,8 @@ function onDisconnect() {
       if (room) {
         socketsLeft = room.length;
       }
-      console.log(`The game host left the room and there are ${socketsLeft} sockets in the room left.`);
+      // console.log(`The game host left the room and there are ${socketsLeft} sockets in the room left.`);
+      
       // if there are no players and no host left in the room,
       // remove the game from the gameStates object:
       if (!socketsLeft) {
@@ -665,7 +662,7 @@ function onDisconnect() {
       // to delete this room
     } else {
       // if the disconnected socket was a player (not the host):
-      console.log(`The disconnected socket ${socket.id} has been a player in game room ${myGameId}.`);
+      // console.log(`The disconnected socket ${socket.id} has been a player in game room ${myGameId}.`);
 
       let pieceId = game.joinedPlayers[socket.id];
 
@@ -687,7 +684,7 @@ function onDisconnect() {
         // TODO: end the game and tell the remaining player they win because everybody else left.
       }
       if (pieceId) {
-        console.log(`player piece "${pieceId}" in game ${myGameId} is now free again`);
+        // console.log(`player piece "${pieceId}" in game ${myGameId} is now free again`);
 
         io.sockets.in(myGameId).emit("remove player", pieceId);
         delete game.joinedPlayers[socket.id];
@@ -725,9 +722,9 @@ function onRejoinRequest(data) {
 }
 
 function addPlayerMidGame(data) {
-  console.log(
-    `${data.playerName} rejoined the game ${data.gameId} with the color ${data.selectedPieceId}`
-  );
+  // console.log(
+  //   `${data.playerName} rejoined the game ${data.gameId} with the color ${data.selectedPieceId}`
+  // );
   let game = gameStates[data.gameId];
   io.sockets.in(data.gameId).emit("add player midgame", {
     selectedPieceId: data.selectedPieceId,
