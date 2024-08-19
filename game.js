@@ -147,15 +147,16 @@ function initiateGameState(gameId, hostSocketId) {
  * @param data Contains data entered via player's input - playerName and gameId.
  */
 function playerJoinsRoom(data) {
-  // console.log('Player ' + data.playerName + ' attempting to join game room: ' + data.gameId );
+  logMessage('Player ' + data.playerName + ' attempting to join game room: ' + data.gameId ); //TODO
 
   // A reference to the player's Socket.IO socket object
   let socket = this;
 
   // Look up the room ID in the Socket.IO adapter object.
-  // console.log("data.gameId:", data.gameId);
   // var room = gameSocket.manager.rooms["/" + data.gameId];
-  let room = gameSocket.adapter.rooms[data.gameId];
+  let room = gameSocket.adapter.rooms[data.gameId]; //TODO: not working anymore, structure changed?
+  logMessage("room: " + room); //TODO
+  logMessage(gameSocket.adapter.rooms); //TODO
 
   // If the room exists...
   if (room) {
