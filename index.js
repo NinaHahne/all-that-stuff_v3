@@ -1,7 +1,7 @@
 // Import the Express module
 const express = require("express");
 
-const hb = require("express-handlebars");
+// const hb = require("express-handlebars");
 
 // Create a new instance of Express
 const app = express();
@@ -14,12 +14,12 @@ const game = require("./game");
 // const mongoose = require('mongoose');
 // const gameModel = require('./models/games');
 
-let secrets;
-if (process.env.NODE_ENV == "production") {
-  secrets = process.env; // in prod the secrets are environment variables
-} else {
-  secrets = require("./secrets"); // in dev they are in secrets.json which is listed in .gitignore
-}
+// let secrets;
+// if (process.env.NODE_ENV == "production") {
+//   secrets = process.env; // in prod the secrets are environment variables
+// } else {
+//   secrets = require("./secrets"); // in dev they are in secrets.json which is listed in .gitignore
+// }
 
 // TODO:
 // mongoose.connect(secrets.MONGO_URI, {
@@ -32,8 +32,8 @@ if (process.env.NODE_ENV == "production") {
 //   .catch(err => console.log(err));
 
 // this configures express to use express-handlebars:
-app.engine("handlebars", hb());
-app.set("view engine", "handlebars");
+// app.engine("handlebars", hb());
+// app.set("view engine", "handlebars");
 
 // Serve static html, js, css, and image files from the 'public' directory:
 app.use(express.static("./public"));

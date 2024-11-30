@@ -21,6 +21,12 @@ HTML5, CSS3, JavaScript, jQuery, Socket.IO
 <!-- <img src="./public/preview/start_menu.gif" alt="start menu preview animation"> -->
 <img src="./public/preview/AllThatStuff_start-menu.png" alt="start menu preview">
 
+## Start the game locally
+* npm start
+* visit http://localhost:8080/ and click 'CREATE' to create a game
+* visit http://localhost:8080/ (in another browser window) and click 'JOIN' to join a game
+* at least 3 players (or incognito tabs) needed to play.
+
 <!-- ### MAIN GAME
 
 BUILDING:
