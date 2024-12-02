@@ -117,7 +117,7 @@ const server = http.createServer(app);
 import { Server as Io } from "socket.io";
 const io = new Io(server, {
   origins:
-    "localhost:8080 http://192.168.0.15:8080:* http://192.168.2.112:8080:* https://allthatstuff.herokuapp.com:* www.allthatstuff.fun:*"
+    "localhost:8080 http://192.168.0.15:8080:* http://192.168.2.112:8080:* hhttps://all-that-stuff-v3.onrender.com:* www.allthatstuff.fun:*"
 });
 server.listen(process.env.PORT || 8080, () =>
   console.log("port 8080 listening! - AllThatStuff")
