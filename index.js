@@ -1,5 +1,5 @@
 // Import the Express module
-const express = require("express");
+import express from "express";
 
 // const hb = require("express-handlebars");
 
@@ -7,7 +7,7 @@ const express = require("express");
 const app = express();
 
 // Import the AllthatStuff game file.
-const game = require("./game");
+import game from "./game.js";
 
 // connect MongoDB Atlas
 // TODO: 
@@ -112,8 +112,10 @@ app.get("/preview", function(req, res) {
 // });
 
 // ------------------------------------------
-const server = require("http").Server(app);
-const io = require("socket.io")(server, {
+import http from "http";
+const server = http.createServer(app);
+import { Server as Io } from "socket.io";
+const io = new Io(server, {
   origins:
     "localhost:8080 http://192.168.0.15:8080:* http://192.168.2.112:8080:* https://allthatstuff.herokuapp.com:* www.allthatstuff.fun:*"
 });

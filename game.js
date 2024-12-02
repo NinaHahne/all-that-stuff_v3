@@ -1,10 +1,12 @@
-const cryptoRandomString = require("crypto-random-string");
+import cryptoRandomString from 'crypto-random-string';
+import { readFile } from "fs/promises";
 
-const cardsEN = require("./cards_enUS.json");
-const cardsDE = require("./cards_de.json");
+import { readFileSync } from "fs";
+const cardsEN = JSON.parse(readFileSync("./cards_enUS.json", "utf8"));
+const cardsDE = JSON.parse(readFileSync("./cards_de.json", "utf8"));
 
 // for writing server-logs:
-const fs = require('fs');
+import * as fs from 'fs';
 
 var io;
 var gameSocket;
@@ -23,7 +25,8 @@ const logMessage = (message) => {
  * @param sio The Socket.IO library
  * @param socket The socket object for the connected client.
  */
-exports.initGame = function(sio, socket) {
+const game = {
+  initGame: function (sio, socket) {
   io = sio;
   gameSocket = socket;
   gameSocket.emit("connected", { message: "You are connected!" });
@@ -56,7 +59,10 @@ exports.initGame = function(sio, socket) {
 
   // gameSocket.on("playerAnswer", playerAnswer);
   // gameSocket.on("playerRestart", playerRestart);
+  },
 };
+
+export default game;
 
 /* *******************************
  *                             *
